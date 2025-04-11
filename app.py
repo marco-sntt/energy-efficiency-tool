@@ -125,7 +125,7 @@ st.title("Tool di Efficientamento Energetico")
 st.markdown("Compila i campi seguenti per calcolare l’impatto stimato di un intervento energetico sull’edificio.")
 
 # Generazione e visualizzazione del QR Code (nella barra laterale)
-url_streamlit = "https://marco-sntt-energy-efficiency-tool.streamlit.app"  # URL del tuo sito
+url_streamlit = "https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/"  # URL del tuo sito
 qr_img = qrcode.make(url_streamlit)
 buf = io.BytesIO()
 qr_img.save(buf)
