@@ -196,6 +196,17 @@ import qrcode
 import io
 import pandas as pd
 import pickle
+import os
+
+# Percorso assoluto alla cartella models/
+MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models"))
+
+# Caricamento dinamico dei modelli
+models = {}
+for i in range(1, 7):
+    model_path = os.path.join(MODELS_DIR, f"XGBoost_{i}.pkl")
+    with open(model_path, "rb") as f:
+        models[i] = pickle.load(f)
 
 # Feature richieste da ciascun modello
 feature_sets = {
@@ -275,4 +286,4 @@ if submit:
 
 # git add requirements.txt
 # git commit -m "Aggiunto qrcode a requirements.txt"
-# git push origin main
+# git push origin maingi
