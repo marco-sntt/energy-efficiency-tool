@@ -410,7 +410,7 @@ if submit:
         'EP_GL_REN': EP_GL_REN
     }
 
-  # Dizionario dei MAE per ogni categoria
+ # Dizionario dei MAE per ogni categoria
     mae_dict = {
         1: 28.25,
         2: 10.03,
@@ -429,19 +429,35 @@ if submit:
         delta = EP_GL_NREN - risultato
 
         st.success(
-            f"Predicted non-renewable global energy performance index (EP_GL_NREN) after intervention of type {CATEGORIA_INTERVENTO}:"
-            f"\n\n**{risultato:.2f}** kWh/m²·year\n"
-            f"Estimated range: **{lower_bound:.2f} – {upper_bound:.2f}** kWh/m²·year (±{mae:.2f})"
+            f"Predicted range of the non-renewable global energy performance index (EP_GL_NREN) after intervention of type {CATEGORIA_INTERVENTO}:\n"
+            f"**{lower_bound:.2f} – {upper_bound:.2f}** kWh/m²·year (±{mae:.2f})"
         )
 
-        st.metric(
-            label="Delta relative to the original EP_GL_NREN (mean case)",
-            value=f"{risultato:.2f}",
-            delta=f"{delta:.2f}"
-        )
+        col1, col2, col3 = st.columns(3)
 
-        st.write(f"🔽 **Best case delta:** {EP_GL_NREN - lower_bound:.2f} kWh/m²·year")
-        st.write(f"🔼 **Worst case delta:** {EP_GL_NREN - upper_bound:.2f} kWh/m²·year")
+        with col1:
+            st.metric(
+                label="Mean case delta",
+                value=f"{risultato:.2f}",
+                delta=f"{delta:.2f}",
+                delta_color="inverse"
+            )
+
+        with col2:
+            st.metric(
+                label="Best case delta",
+                value=f"{lower_bound:.2f}",
+                delta=f"{EP_GL_NREN - lower_bound:.2f}",
+                delta_color="inverse"
+            )
+
+        with col3:
+            st.metric(
+                label="Worst case delta",
+                value=f"{upper_bound:.2f}",
+                delta=f"{EP_GL_NREN - upper_bound:.2f}",
+                delta_color="inverse"
+            )
 
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
