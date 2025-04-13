@@ -429,7 +429,7 @@ if submit:
         delta = EP_GL_NREN - risultato
 
         st.success(
-            f"Predicted range of the non-renewable global energy performance index (EP_GL_NREN) after intervention of type {CATEGORIA_INTERVENTO}:\n"
+            f"Predicted range of the non-renewable global energy performance index (EP_GL_NREN) after intervention of type {CATEGORIA_INTERVENTO}:\n\n"
             f"**{lower_bound:.2f} – {upper_bound:.2f}** kWh/m²·year (±{mae:.2f})"
         )
 
