@@ -358,7 +358,7 @@ st.markdown("""
 - E.1(2): Buildings used as non-permanent residences (e.g., holiday homes)
 - E.1(3): Other residential buildings (e.g., student or worker residences)
 
-Make sure your building meets these criteria before proceeding.
+⚠️ Make sure your building meets these criteria before proceeding.
             
 Fill in the fields below to estimate the impact of an energy efficiency intervention on the building.
 """)
