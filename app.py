@@ -351,7 +351,18 @@ def predizione_intervento(input_data):
 # Configurazione iniziale della pagina
 st.set_page_config(page_title="ENERGY EFFICIENCY TOOL", layout="centered")
 st.title("ENERGY EFFICIENCY TOOL")
-st.markdown("Fill in the fields below to estimate the impact of an energy efficiency intervention on the building.")
+
+st.markdown("""
+Fill in the fields below to estimate the impact of an energy efficiency intervention on the building.
+
+**⚠️ This tool is valid only for buildings located in the Lombardy region, within climate zone E, and specifically of category E.1:**
+- E.1(1): Buildings used as permanent residences (e.g., apartment buildings)
+- E.1(2): Buildings used as non-permanent residences (e.g., holiday homes)
+- E.1(3): Other residential buildings (e.g., student or worker residences)
+
+Make sure your building meets these criteria before proceeding.
+""")
+
 
 # Generazione e visualizzazione del QR Code (nella barra laterale)
 url_streamlit = "https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/"
