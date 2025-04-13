@@ -430,7 +430,7 @@ if submit:
 
         st.success(
             f"Predicted range of the non-renewable global energy performance index (EP_GL_NREN) after intervention of type {CATEGORIA_INTERVENTO}:\n\n"
-            f"**{lower_bound:.2f} – {upper_bound:.2f}** kWh/m²·year ({risultato}±{mae:.2f} kWh/m²·year)"
+            f"**{lower_bound:.2f} – {upper_bound:.2f}** kWh/m²·year ({risultato:.2f} ± {mae:.2f} kWh/m²·year)"
         )
 
         col1, col2, col3 = st.columns(3)
