@@ -243,18 +243,39 @@ qr_img.save(buf)
 byte_im = buf.getvalue()
 st.sidebar.image(byte_im, caption="📱 Scansiona per accedere rapidamente")
 
-# Form di input
+# Da qui in poi tutto il resto del tuo codice esistente (form, predizioni, ecc.)
 with st.form("input_form"):
     st.subheader("Dati dell’edificio")
 
-    EP_GL_NREN = st.number_input("EP_GL_NREN", min_value=0.0)
-    EP_H_ND = st.number_input("EP_H_ND", min_value=0.0)
-    CLASSE_ENERGETICA = st.selectbox("Classe Energetica (da 1 = A4 a 8 = G)", options=list(range(1, 9)))
-    RAPPORTO_SV = st.number_input("Rapporto S/V", min_value=0.0)
-    SUPERFICIE_DISPERDENTE = st.number_input("Superficie Disperdente (m²)", min_value=0.0)
-    Y_IE = st.number_input("Y_IE", min_value=0.0)
-    VOLUME_LORDO_RISCALDATO = st.number_input("Volume Lordo Riscaldato (m³)", min_value=0.0)
-    CATEGORIA_INTERVENTO = st.selectbox("Categoria di Intervento (1–6)", options=list(range(1, 7)))
+    EP_GL_NREN = st.number_input(
+        "EP_GL_NREN (kWh/m² anno)", min_value=0.0, help="Indice di prestazione energetica globale non rinnovabile (kWh/m² anno)"
+    )
+    EP_GL_REN = st.number_input(
+        "EP_GL_REN (kWh/m² anno)", min_value=0.0, help="Indice di prestazione energetica globale rinnovabile (kWh/m² anno)"
+    )
+    EP_H_ND = st.number_input(
+        "EP_H_ND (kWh/m² anno)", min_value=0.0, help="Fabbisogno di energia termica per il riscaldamento (kWh/m² anno)"
+    )
+    CLASSE_ENERGETICA = st.selectbox(
+        "Classe Energetica (da 1 = A4 a 8 = G)", options=list(range(1, 9)),
+        help="Classe energetica attuale dell’edificio (A1, A2, A3, A4, B, C, D, E,F,G)"
+    )
+    RAPPORTO_SV = st.number_input(
+        "Rapporto S/V", min_value=0.0, help="Rapporto tra superficie disperdente e volume riscaldato"
+    )
+    SUPERFICIE_DISPERDENTE = st.number_input(
+        "Superficie Disperdente (m²)", min_value=0.0, help="Superficie totale dell'involucro che disperde energia"
+    )
+    Y_IE = st.number_input(
+        "Y_IE", min_value=0.0, help="Indice di efficienza dell’edificio rispetto all’involucro"
+    )
+    VOLUME_LORDO_RISCALDATO = st.number_input(
+        "Volume Lordo Riscaldato (m³)", min_value=0.0, help="Volume interno riscaldato"
+    )
+    CATEGORIA_INTERVENTO = st.selectbox(
+        "Categoria di Intervento (1–6)", options=list(range(1, 7)),
+        help="Seleziona la categoria dell’intervento proposto"
+    )
 
     submit = st.form_submit_button("Calcola Risparmio Energetico")
 
@@ -267,7 +288,8 @@ if submit:
         'SUPERFICIE_DISPERDENTE': SUPERFICIE_DISPERDENTE,
         'Y_IE': Y_IE,
         'VOLUME_LORDO_RISCALDATO': VOLUME_LORDO_RISCALDATO,
-        'CATEGORIA_INTERVENTO': CATEGORIA_INTERVENTO
+        'CATEGORIA_INTERVENTO': CATEGORIA_INTERVENTO,
+        'EP_GL_REN': EP_GL_REN
     }
 
     try:
