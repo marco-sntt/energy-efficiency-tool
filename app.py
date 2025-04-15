@@ -1062,10 +1062,11 @@ if intervention_submitted:
             # Dichiariamo un dizionario che conterrà i valori inseriti dall'utente
             input_data = {}
 
-            EP_GL_NREN = st.number_input(
-            "EP_GL_NREN (kWh/m²·year)", min_value=0.0, 
-            help="Non-renewable global energy performance index (kWh/m²·year)"
-            )
+            if "EP_GL_NREN" in needed_fields:
+                input_data["EP_GL_NREN"] = st.number_input(
+                    "EP_GL_NREN (kWh/m²·year)", min_value=0.0, 
+                    help="Non-renewable global energy performance index (kWh/m²·year)"
+                 )
             if "EP_GL_REN" in needed_fields:
                 input_data["EP_GL_REN"] = st.number_input(
                     "EP_GL_REN (kWh/m²·year)", min_value=0.0, 
@@ -1076,11 +1077,12 @@ if intervention_submitted:
                     "EP_H_ND (kWh/m²·year)", min_value=0.0, 
                     help="Thermal energy demand for heating (kWh/m²·year)"
                 )
-            CLASSE_ENERGETICA = st.selectbox(
-            "Energy class (from 1 = A4 to 10 = G)",
-            options=list(range(1, 11)),
-            help="Current energy class of the building (A1, A2, A3, A4, B, C, D, E, F, G)"
-            )
+            if "CLASSE_ENERGETICA" in needed_fields:
+                input_data["CLASSE_ENERGETICA"] = st.selectbox(
+                    "Energy class (from 1 = A4 to 10 = G)",
+                    options=list(range(1, 11)),
+                    help="Current energy class of the building (A1..G)"
+                 )
             if "RAPPORTO_SV" in needed_fields:
                 input_data["RAPPORTO_SV"] = st.number_input(
                     "S/V ratio", min_value=0.0, 
