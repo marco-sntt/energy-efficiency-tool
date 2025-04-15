@@ -1208,7 +1208,7 @@ if st.session_state.selected_interventions:
                     delta = input_data["EP_GL_NREN"] - risultato
 
                 # ### Creiamo subito le tre colonne
-                col1, col2, col3 = st.columns(3)
+                col1, col2 = st.columns(2)
 
                 # ### Nella col1 mostriamo la prima predizione e il suo delta
                 with col1:
