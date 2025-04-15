@@ -1207,18 +1207,20 @@ if st.session_state.selected_interventions:
                 if "EP_GL_NREN" in needed_fields and "EP_GL_NREN" in input_data:
                     delta = input_data["EP_GL_NREN"] - risultato
 
-                st.success(
-                    f"**Intervention {intervention_type}**\n\n"
-                    f"Predicted range of EP_GL_NREN:\n"
-                    f"**{lower_bound:.2f} – {upper_bound:.2f}** kWh/m²·year "
-                    f"({risultato:.2f} ± {mae:.2f} kWh/m²·year)"
-                )
+                # ### Creiamo subito le tre colonne
+                col1, col2, col3 = st.columns(3)
 
-                if delta is not None:
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
+                # ### Nella col1 mostriamo la prima predizione e il suo delta
+                with col1:
+                    st.success(
+                        f"**Intervention {intervention_type}**\n\n"
+                        f"Predicted range of EP_GL_NREN:\n"
+                        f"**{lower_bound:.2f} – {upper_bound:.2f}** kWh/m²·year "
+                        f"({risultato:.2f} ± {mae:.2f} kWh/m²·year)"
+                    )
+                    if delta is not None:
                         st.metric(
-                            label=f"Mean case delta (Int. {intervention_type})",
+                            label="Mean case delta",
                             value=f"{risultato:.2f}",
                             delta=f"{delta:.2f}",
                             delta_color="inverse"
@@ -1234,7 +1236,11 @@ if st.session_state.selected_interventions:
                         classe_energetica=input_data["CLASSE_ENERGETICA"],
                         categoria=intervention_type
                     )
-                    st.info(f"**Predicted new energy class** (Intervention {intervention_type}): {new_class}")
+                    
+                    # ### Nella col2 mostriamo la nuova classe energetica
+                    with col2:
+                        st.info(f"**Predicted new energy class:** {new_class}")
 
             except Exception as e:
                 st.error(f"An error occurred during prediction for intervention {intervention_type}: {e}")
+            
