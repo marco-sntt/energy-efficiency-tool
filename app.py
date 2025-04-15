@@ -1216,7 +1216,7 @@ if st.session_state.selected_interventions:
                         f"**Intervention {intervention_type}**\n\n"
                         f"Predicted EP_GL_NREN:\n"
                         f"**{risultato:.2f}** kWh/m²·year\n"
-                        f"MAE:± {mae:.2f} kWh/m²·year)"
+                        f"MAE: ±{mae:.2f} kWh/m²·year"
                     )
                     if delta is not None:
                         st.metric(
