@@ -1223,7 +1223,7 @@ if st.session_state.selected_interventions:
                             label="Mean case delta",
                             value=f"{risultato:.2f}",
                             delta=f"{delta:.2f}",
-                            delta_color="inverse"
+                            delta_color="normal"
                         )
 
                 # 2) Seconda predizione => nuova classe energetica
