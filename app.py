@@ -552,33 +552,7 @@ qr_img.save(buf)
 byte_im = buf.getvalue()
 st.sidebar.image(byte_im, caption="🔳 Scan to access quickly")
 
-# --- BOX 1: Selezione multipla dell'intervento con checkbox --- #
-with st.form("intervention_form"):
-    st.subheader("Type of intervention")
-    # Lista di interventi con checkbox
-    selected_interventions = []
-
-    check_1 = st.checkbox("1", value=False)
-    if check_1: selected_interventions.append(1)
-
-    check_2 = st.checkbox("2", value=False)
-    if check_2: selected_interventions.append(2)
-
-    check_3 = st.checkbox("3", value=False)
-    if check_3: selected_interventions.append(3)
-
-    check_4 = st.checkbox("4", value=False)
-    if check_4: selected_interventions.append(4)
-
-    check_5 = st.checkbox("5", value=False)
-    if check_5: selected_interventions.append(5)
-
-    check_6 = st.checkbox("6", value=False)
-    if check_6: selected_interventions.append(6)
-
-    intervention_submitted = st.form_submit_button("Confirm selection")
-
-# --- BOX 2: Inserimento dei dati di building --- #
+# --- BOX 1: Inserimento dei dati di building --- #
 with st.form("building_data_form"):
     st.subheader("Building data")
 
@@ -617,6 +591,32 @@ with st.form("building_data_form"):
     )
 
     submit = st.form_submit_button("Calculate energy savings")
+
+# --- BOX 2: Selezione multipla dell'intervento con checkbox --- #
+with st.form("intervention_form"):
+    st.subheader("Type of intervention")
+    # Lista di interventi con checkbox
+    selected_interventions = []
+
+    check_1 = st.checkbox("1", value=False)
+    if check_1: selected_interventions.append(1)
+
+    check_2 = st.checkbox("2", value=False)
+    if check_2: selected_interventions.append(2)
+
+    check_3 = st.checkbox("3", value=False)
+    if check_3: selected_interventions.append(3)
+
+    check_4 = st.checkbox("4", value=False)
+    if check_4: selected_interventions.append(4)
+
+    check_5 = st.checkbox("5", value=False)
+    if check_5: selected_interventions.append(5)
+
+    check_6 = st.checkbox("6", value=False)
+    if check_6: selected_interventions.append(6)
+
+    intervention_submitted = st.form_submit_button("Confirm selection")
 
 # --- Se l'utente ha inviato la form dei dati --- #
 if submit:
