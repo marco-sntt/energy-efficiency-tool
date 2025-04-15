@@ -596,7 +596,7 @@ with st.form("building_data_form"):
     )
     CLASSE_ENERGETICA = st.selectbox(
         "Energy class (from 1 = A4 to 10 = G)",
-        options=list(range(1, 10)),
+        options=list(range(1, 11)),
         help="Current energy class of the building (A1, A2, A3, A4, B, C, D, E, F, G)"
     )
     RAPPORTO_SV = st.number_input(
