@@ -662,18 +662,10 @@ if submit:
                         delta_color="inverse"
                     )
                 with col2:
-                    st.metric(
-                        label=f"Best case delta (Int. {intervention_type})",
-                        value=f"{lower_bound:.2f}",
-                        delta=f"{EP_GL_NREN - lower_bound:.2f}",
-                        delta_color="inverse"
+                    (
                     )
                 with col3:
-                    st.metric(
-                        label=f"Worst case delta (Int. {intervention_type})",
-                        value=f"{upper_bound:.2f}",
-                        delta=f"{EP_GL_NREN - upper_bound:.2f}",
-                        delta_color="inverse"
+                    (
                     )
             except Exception as e:
                 st.error(f"An error occurred during prediction for intervention {intervention_type}: {e}")
