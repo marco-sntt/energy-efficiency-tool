@@ -613,7 +613,23 @@ with st.form("building_data_form"):
     )
     VOLUME_LORDO_RISCALDATO = st.number_input(
         "Gross heated volume of the building (m³)", min_value=0.0, 
-        help="Net heated volume"
+        help="Gross heated volume"
+    )
+    SUPERF_UTILE_RISCALDATA = st.number_input(
+        "Heated useful area of the building (m²)", min_value=0.0, 
+        help="Heated useful area of the building"
+    )
+    A_SOL_EST_A_SUP_UTILE = st.number_input(
+        "Solar collection area to net usable surface ratio (m²)", min_value=0.0, 
+        help="Summer equivalent solar area per unit of useful surface"
+    )
+    VOLUME_LORDO_RAFFRESCATO = st.number_input(
+        "Gross cooled volume of the building (m³)", min_value=0.0, 
+        help="Gross cooled volume"
+    )
+    SUPERF_UTILE_RAFFRESCATA = st.number_input(
+        "Cooled useful area of the building (m²)", min_value=0.0, 
+        help="Cooled useful area of the building"
     )
 
     submit = st.form_submit_button("Calculate energy savings")
