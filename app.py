@@ -924,7 +924,13 @@ for i in range(1, 7):
     with open(os.path.join(MODELS_DIR, f"XGBoost_{i}.pkl"), "rb") as f:
         models[i] = pickle.load(f)
 
-# Feature richieste da ciascun modello
+# Caricamento dei modelli per predire la nuova classe energetica
+models_en = {}
+for i in range(1, 7):
+    with open(os.path.join(MODELS_DIR, f"XGBoost_EN_{i}.pkl"), "rb") as f:
+        models_en[i] = pickle.load(f)
+
+# Feature richieste da ciascun modello (prima predizione)
 feature_sets = {
     1: ['EP_GL_NREN', 'EP_H_ND', 'CLASSE_ENERGETICA', 'RAPPORTO_SV',
         'SUPERFICIE_DISPERDENTE', 'Y_IE', 'VOLUME_LORDO_RISCALDATO'],
@@ -948,7 +954,7 @@ feature_sets = {
 def predizione_intervento(input_data, categoria):
     """
     Data un dizionario con le feature e la categoria di intervento,
-    restituisce la predizione del modello corrispondente.
+    restituisce la predizione del modello corrispondente (NM_EP_GL_NREN_RAGGIUNG_n).
     """
     if categoria not in models:
         raise ValueError(f"Categoria {categoria} non valida")
@@ -959,8 +965,35 @@ def predizione_intervento(input_data, categoria):
     X_input = pd.DataFrame([filtered_data])
 
     modello = models[categoria]
-    pred = modello.predict(X_input)
-    return pred[0]
+    predizione = modello.predict(X_input)
+
+    return predizione[0]
+
+def predizione_classe_energetica(nm_ep_gl_nren_raggiung, ep_gl_nren, classe_energetica, categoria):
+    """
+    Predice la nuova classe energetica usando il modello XGBoost_EN_{categoria}.
+
+    Parametri:
+    - nm_ep_gl_nren_raggiung: il risultato del primo modello (NM_EP_GL_NREN_RAGGIUNG_n)
+    - ep_gl_nren: l'EP_GL_NREN originale di input
+    - classe_energetica: la classe energetica attuale (1..10)
+    - categoria: l'intervento (1..6)
+    """
+    if categoria not in models_en:
+        raise ValueError(f"Modello EN per categoria {categoria} non trovato")
+
+    # Costruiamo il DataFrame con le 3 feature richieste
+    col_nm = f"NM_EP_GL_NREN_RAGGIUNG_{categoria}"
+    X_en = pd.DataFrame([{
+        col_nm: nm_ep_gl_nren_raggiung,
+        "CLASSE_ENERGETICA": classe_energetica,
+        "EP_GL_NREN": ep_gl_nren
+    }])
+
+    model_en = models_en[categoria]
+    new_class = model_en.predict(X_en)
+
+    return new_class[0]
 
 # Dizionario dei MAE per ogni categoria (per costruire gli intervalli)
 mae_dict = {
@@ -995,7 +1028,7 @@ qr_img.save(buf)
 byte_im = buf.getvalue()
 st.sidebar.image(byte_im, caption="🔳 Scan to access quickly")
 
-# Inizializziamo la chiave di session_state per tenere memoria degli interventi selezionati
+# 1) Inizializza la chiave di session_state per la lista interventi
 if "selected_interventions" not in st.session_state:
     st.session_state.selected_interventions = []
 
@@ -1003,35 +1036,43 @@ if "selected_interventions" not in st.session_state:
 with st.form("intervention_form"):
     st.subheader("Type of intervention")
 
+    # Creiamo una lista temporanea dei nuovi interventi selezionati
     temp_selected = []
 
-    check_1 = st.checkbox("1 - Improvement of the opaque envelope", value=False)
+    check_1 = st.checkbox("1 - Improvement of the opaque envelope",
+                          value=(1 in st.session_state.selected_interventions))
     if check_1: temp_selected.append(1)
 
-    check_2 = st.checkbox("2 - Improvement of the transparent envelope", value=False)
+    check_2 = st.checkbox("2 - Improvement of the transparent envelope",
+                          value=(2 in st.session_state.selected_interventions))
     if check_2: temp_selected.append(2)
 
-    check_3 = st.checkbox("3 - Replacement or upgrade of the heating system", value=False)
+    check_3 = st.checkbox("3 - Replacement or upgrade of the heating system",
+                          value=(3 in st.session_state.selected_interventions))
     if check_3: temp_selected.append(3)
 
-    check_4 = st.checkbox("4 - Replacement or upgrade of the cooling system", value=False)
+    check_4 = st.checkbox("4 - Replacement or upgrade of the cooling system",
+                          value=(4 in st.session_state.selected_interventions))
     if check_4: temp_selected.append(4)
 
-    check_5 = st.checkbox("5 - Use of renewable energy sources", value=False)
+    check_5 = st.checkbox("5 - Use of renewable energy sources",
+                          value=(5 in st.session_state.selected_interventions))
     if check_5: temp_selected.append(5)
 
-    check_6 = st.checkbox("6 - Other interventions", value=False)
+    check_6 = st.checkbox("6 - Other interventions",
+                          value=(6 in st.session_state.selected_interventions))
     if check_6: temp_selected.append(6)
 
     intervention_submitted = st.form_submit_button("Confirm selection")
 
-# Dopo il submit, salviamo la selezione in session_state
+# 2) Se l'utente ha premuto "Confirm selection",
+#    salviamo la lista temp_selected in st.session_state.selected_interventions
 if intervention_submitted:
     st.session_state.selected_interventions = temp_selected
     if not temp_selected:
         st.error("Please select at least one intervention before proceeding.")
 
-# Se l'utente ha selezionato almeno un intervento, mostriamo la seconda form
+# 3) Se ci sono interventi selezionati, calcoliamo i campi necessari e mostriamo la seconda form
 if st.session_state.selected_interventions:
     needed_fields = set()
     for i in st.session_state.selected_interventions:
@@ -1039,13 +1080,14 @@ if st.session_state.selected_interventions:
 
     with st.form("building_data_form"):
         st.subheader("Building data")
+
         input_data = {}
 
-        # Esempio: Mostriamo i campi solo se servono per almeno uno degli interventi
         # EP_GL_NREN
+        # Se uno dei modelli selezionati la richiede, la rendiamo disponibile
         if "EP_GL_NREN" in needed_fields:
             input_data["EP_GL_NREN"] = st.number_input(
-                "EP_GL_NREN (kWh/m²·year)",
+                "EP_GL_NREN (kWh/m²·year)", 
                 min_value=0.0,
                 help="Non-renewable global energy performance index (kWh/m²·year)"
             )
@@ -1061,7 +1103,7 @@ if st.session_state.selected_interventions:
         # EP_H_ND
         if "EP_H_ND" in needed_fields:
             input_data["EP_H_ND"] = st.number_input(
-                "EP_H_ND (kWh/m²·year)",
+                "EP_H_ND (kWh/m²·year)", 
                 min_value=0.0,
                 help="Thermal energy demand for heating (kWh/m²·year)"
             )
@@ -1138,46 +1180,61 @@ if st.session_state.selected_interventions:
                 help="Cooled useful floor area of the building"
             )
 
+        # Tasto di submit per la seconda form
         submit_building = st.form_submit_button("Calculate energy savings")
 
-    # Se l'utente ha premuto "Calculate energy savings"
+    # 4) Se l'utente ha inviato i dati di building
     if submit_building:
-        if not input_data:
-            st.warning("No data provided.")
-        else:
-            # Per ogni intervento selezionato, calcoliamo la previsione
-            for itv in st.session_state.selected_interventions:
-                try:
-                    # 1) Calcoliamo la predizione
-                    risultato = predizione_intervento(input_data, itv)
-                    mae = mae_dict.get(itv, 28.0)  # fallback di sicurezza
+        # Controllo minimo: se i modelli EN necessitano CLASSE_ENERGETICA e EP_GL_NREN
+        # e non sono stati inseriti, segnaliamo un errore
+        if any(x in st.session_state.selected_interventions for x in range(1, 7)):
+            # Modelli EN possibili => verifichiamo i campi
+            if "EP_GL_NREN" not in input_data or "CLASSE_ENERGETICA" not in input_data:
+                st.error("EP_GL_NREN and/or CLASSE_ENERGETICA are required for the energy class prediction.")
+                st.stop()
 
-                    lower_bound = max(risultato - mae, 0)
-                    upper_bound = risultato + mae
+        # Eseguiamo la predizione per ogni intervento
+        for intervention_type in st.session_state.selected_interventions:
+            try:
+                # 1) Prima predizione: NM_EP_GL_NREN_RAGGIUNG_n
+                risultato = predizione_intervento(input_data.copy(), intervention_type)
+                mae = mae_dict.get(intervention_type, 28.0)  # default di sicurezza
 
-                    # Calcoliamo il delta, se EP_GL_NREN è presente
-                    delta = None
-                    if "EP_GL_NREN" in needed_fields and "EP_GL_NREN" in input_data:
-                        delta = input_data["EP_GL_NREN"] - risultato
+                lower_bound = max(risultato - mae, 0)  # Evita valori negativi
+                upper_bound = risultato + mae
 
-                    st.success(
-                        f"**Intervention {itv}**\n\n"
-                        f"Predicted range of EP_GL_NREN:\n"
-                        f"**{lower_bound:.2f} – {upper_bound:.2f}** kWh/m²·year "
-                        f"({risultato:.2f} ± {mae:.2f} kWh/m²·year)"
+                delta = None
+                if "EP_GL_NREN" in needed_fields and "EP_GL_NREN" in input_data:
+                    delta = input_data["EP_GL_NREN"] - risultato
+
+                st.success(
+                    f"**Intervention {intervention_type}**\n\n"
+                    f"Predicted range of EP_GL_NREN:\n"
+                    f"**{lower_bound:.2f} – {upper_bound:.2f}** kWh/m²·year "
+                    f"({risultato:.2f} ± {mae:.2f} kWh/m²·year)"
+                )
+
+                if delta is not None:
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric(
+                            label=f"Mean case delta (Int. {intervention_type})",
+                            value=f"{risultato:.2f}",
+                            delta=f"{delta:.2f}",
+                            delta_color="inverse"
+                        )
+
+                # 2) Seconda predizione => nuova classe energetica
+                #    Solo se i modelli EN e i campi EP_GL_NREN + CLASSE_ENERGETICA
+                #    sono effettivamente disponibili
+                if "EP_GL_NREN" in input_data and "CLASSE_ENERGETICA" in input_data:
+                    new_class = predizione_classe_energetica(
+                        nm_ep_gl_nren_raggiung=risultato,
+                        ep_gl_nren=input_data["EP_GL_NREN"],
+                        classe_energetica=input_data["CLASSE_ENERGETICA"],
+                        categoria=intervention_type
                     )
+                    st.info(f"**Predicted new energy class** (Intervention {intervention_type}): {new_class}")
 
-                    if delta is not None:
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.metric(
-                                label=f"Mean case delta (Int. {itv})",
-                                value=f"{risultato:.2f}",
-                                delta=f"{delta:.2f}",
-                                delta_color="inverse"
-                            )
-
-                except Exception as e:
-                    st.error(
-                        f"An error occurred during prediction for intervention {itv}: {e}"
-                    )
+            except Exception as e:
+                st.error(f"An error occurred during prediction for intervention {intervention_type}: {e}")
