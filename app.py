@@ -1001,7 +1001,11 @@ mae_dict = {
 }
 
 # Configurazione iniziale della pagina
-st.set_page_config(page_title="ENERGY EFFICIENCY TOOL", layout="centered")
+st.set_page_config(
+    page_title="ENERGY EFFICIENCY TOOL", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 st.title("ENERGY EFFICIENCY TOOL")
 
 st.markdown("""
@@ -1014,8 +1018,6 @@ st.markdown("""
             
 Fill in the fields below to estimate the impact of an energy efficiency intervention on the building.
 """)
-
-st.set_page_config(layout="wide")
 
 # crea due colonne: la prima (4 parti) per il contenuto principale,
 # la seconda (1 parte) per il pannello a destra
