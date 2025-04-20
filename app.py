@@ -1105,11 +1105,13 @@ if st.session_state.selected_interventions:
 
         # CLASSE_ENERGETICA
         if "CLASSE_ENERGETICA" in needed_fields:
-            input_data["CLASSE_ENERGETICA"] = st.selectbox(
+            selected = st.selectbox(
                 "Energy class (from 1 = A4 to 10 = G)",
                 options=list(range(1, 11)),
                 help="Current energy class of the building (1=A4 .. 10=G)"
             )
+            # Passa al regressore il valore zero‑based
+            input_data["CLASSE_ENERGETICA"] = selected - 1
 
         # RAPPORTO_SV
         if "RAPPORTO_SV" in needed_fields:
@@ -1234,7 +1236,7 @@ if st.session_state.selected_interventions:
                     
                     # ### Nella col2 mostriamo la nuova classe energetica
                     with col2:
-                        st.info(f"**Predicted new energy class:** {new_class}")
+                        st.info(f"**Predicted new energy class:** {new_class + 1}")
 
             except Exception as e:
                 st.error(f"An error occurred during prediction for intervention {intervention_type}: {e}")
