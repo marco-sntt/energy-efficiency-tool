@@ -1015,13 +1015,24 @@ st.markdown("""
 Fill in the fields below to estimate the impact of an energy efficiency intervention on the building.
 """)
 
-# Generazione e visualizzazione del QR Code (nella barra laterale)
-url_streamlit = "https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/"
-qr_img = qrcode.make(url_streamlit)
-buf = io.BytesIO()
-qr_img.save(buf)
-byte_im = buf.getvalue()
-st.sidebar.image(byte_im, caption="🔳 Scan to access quickly")
+st.set_page_config(layout="wide")
+
+# crea due colonne: la prima (4 parti) per il contenuto principale,
+# la seconda (1 parte) per il pannello a destra
+col_main, col_right = st.columns([4, 1])
+
+with col_main:
+    st.title("ENERGY EFFICIENCY TOOL")
+    st.markdown("Qui va tutto il flusso principale…")
+
+with col_right:
+    # puoi anche mettere un expander per avere la tendina
+    with st.expander("🔳 QR Code", expanded=False):
+        url_streamlit = "https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/"
+        qr_img = qrcode.make(url_streamlit)
+        buf = io.BytesIO()
+        qr_img.save(buf)
+        st.image(buf.getvalue(), use_column_width=True)
 
 # 1) Inizializza la chiave di session_state per la lista interventi
 if "selected_interventions" not in st.session_state:
@@ -1212,7 +1223,7 @@ if st.session_state.selected_interventions:
                     st.success(
                         f"**Intervention {intervention_type}**\n\n"
                         f"Predicted EP_GL_NREN:\n"
-                        #f"**{risultato:.2f}** kWh/m²·year\n"
+                        f"**{risultato:.2f}** kWh/m²·year\n"
                         #f"MAE: ±{mae:.2f} kWh/m²·year"
                     )
                     if delta is not None:
