@@ -1006,18 +1006,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-st.title("ENERGY EFFICIENCY TOOL")
-
-st.markdown("""
-**⚠️ This tool is valid only for buildings located in the Lombardy region, within climate zone E, and specifically of category E.1:**
-- E.1(1): Buildings used as permanent residences (e.g., apartment buildings)
-- E.1(2): Buildings used as non-permanent residences (e.g., holiday homes)
-- E.1(3): Other residential buildings (e.g., student or worker residences)
-
-⚠️ Make sure your building meets these criteria before proceeding.
-            
-Fill in the fields below to estimate the impact of an energy efficiency intervention on the building.
-""")
 
 # crea due colonne: la prima (4 parti) per il contenuto principale,
 # la seconda (1 parte) per il pannello a destra
@@ -1025,7 +1013,16 @@ col_main, col_right = st.columns([4, 1])
 
 with col_main:
     st.title("ENERGY EFFICIENCY TOOL")
-    st.markdown("Qui va tutto il flusso principale…")
+    st.markdown("""
+    **⚠️ This tool is valid only for buildings located in the Lombardy region, within climate zone E, and specifically of category E.1:**
+    - E.1(1): Buildings used as permanent residences (e.g., apartment buildings)
+    - E.1(2): Buildings used as non-permanent residences (e.g., holiday homes)
+    - E.1(3): Other residential buildings (e.g., student or worker residences)
+
+    ⚠️ Make sure your building meets these criteria before proceeding.
+            
+    Fill in the fields below to estimate the impact of an energy efficiency intervention on the building.
+    """)
 
 with col_right:
     # puoi anche mettere un expander per avere la tendina
