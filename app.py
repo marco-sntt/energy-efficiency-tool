@@ -970,18 +970,6 @@ def predizione_intervento(input_data, categoria):
     return predizione[0]
 
 def predizione_classe_energetica(nm_ep_gl_nren_raggiung, ep_gl_nren, classe_energetica, categoria):
-    """
-    Predice la nuova classe energetica usando il modello XGBoost_EN_{categoria}.
-
-    Parametri:
-    - nm_ep_gl_nren_raggiung: il risultato del primo modello (NM_EP_GL_NREN_RAGGIUNG_n)
-    - ep_gl_nren: l'EP_GL_NREN originale di input
-    - classe_energetica: la classe energetica attuale (1..10)
-    - categoria: l'intervento (1..6)
-    """
-    if categoria not in models_en:
-        raise ValueError(f"Modello EN per categoria {categoria} non trovato")
-
     # Costruiamo il DataFrame con le 3 feature richieste
     col_nm = f"NM_EP_GL_NREN_RAGGIUNG_{categoria}"
     X_en = pd.DataFrame([{
@@ -990,9 +978,16 @@ def predizione_classe_energetica(nm_ep_gl_nren_raggiung, ep_gl_nren, classe_ener
         "EP_GL_NREN": ep_gl_nren
     }])
 
+    # --- NUOVO: riallinea le colonne come il modello si aspetta ---
     model_en = models_en[categoria]
-    new_class = model_en.predict(X_en)
+    # se usi lo sklearn wrapper:
+    feature_order = model_en.feature_names_in_
+    # altrimenti, per un Booster puro:
+    # feature_order = model_en.get_booster().feature_names
+    X_en = X_en[feature_order]
 
+    # Ora la predizione non darà più mismatch
+    new_class = model_en.predict(X_en)
     return new_class[0]
 
 # Dizionario dei MAE per ogni categoria (per costruire gli intervalli)
