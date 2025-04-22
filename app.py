@@ -1478,7 +1478,7 @@ st.set_page_config(
      layout="wide",
      initial_sidebar_state="expanded"
 )
-c1,c2=st.columns([3,2])
+c1,c2=st.columns([4,1])
 with c1: 
     st.title("ENERGY EFFICIENCY TOOL")
     st.markdown("""
@@ -1562,14 +1562,46 @@ if sel:
                 ds7=list(ds_sing.values())[0]
 
             # ---------- OUTPUT ---------- #
-            if len(sel)>1:
-                st.subheader("Single results")
-                for i in sel:
-                    st.success(f"**Intervention {i}** | EP_GL_NREN_achievable: {nm_sing[i]:.2f} kWh/m²·year, Energy class achievable: {ds_sing[i]+1}")
+        #     if len(sel)>1:
+        #         st.subheader("Single results")
+        #         for i in sel:
+        #             st.success(f"**Intervention {i}** | EP_GL_NREN_achievable: {nm_sing[i]:.2f} kWh/m²·year, Energy class achievable: {ds_sing[i]+1}")
 
-            mae=mae_dict[7 if len(sel)>1 else sel[0]]
-            st.subheader("Combined result" if len(sel)>1 else "Result")
-            st.success(f"EP_GL_NREN_achievable: **{nm7:.2f}** kWh/m²·year, Energy class achievable: {ds7+1})")
+        #     mae=mae_dict[7 if len(sel)>1 else sel[0]]
+        #     st.subheader("Combined result" if len(sel)>1 else "Result")
+        #     st.success(f"EP_GL_NREN_achievable: **{nm7:.2f}** kWh/m²·year, Energy class achievable: {ds7+1})")
+
+        # except Exception as e:
+        #     st.error(f"Error: {e}")
+        
+            tabs = st.tabs(
+                [f"Intervention {i}" for i in sel] +
+                (["Combined"] if len(sel) > 1 else [])
+            )
+
+            # ➊ singoli interventi
+            for idx, i in enumerate(sel):
+                with tabs[idx]:
+                    st.metric(
+                        "EP_GL_NREN achievable (kWh/m²·year)",
+                        f"{nm_sing[i]:.2f}"
+                    )
+                    st.metric(
+                        "Energy class achievable",
+                        f"{ds_sing[i] + 1}"
+                    )
+
+            # ➋ risultato combinato
+            if len(sel) > 1:
+                with tabs[-1]:
+                    st.metric(
+                        "EP_GL_NREN achievable (kWh/m²·year)",
+                        f"{nm7:.2f}"
+                    )
+                    st.metric(
+                        "Energy class achievable",
+                        f"{ds7 + 1}"
+                    )
 
         except Exception as e:
             st.error(f"Error: {e}")
