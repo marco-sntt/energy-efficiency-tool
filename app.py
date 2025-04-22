@@ -1452,6 +1452,43 @@ mae_dict={1:28.25,
           7:5.55
 }
 
+#SIDEBAR
+
+import streamlit as st
+import os, pandas as pd
+
+# —–—  dizionario MAE già definito altrove  —–—
+# mae_dict = {1: 28.25, 2: 10.03, ... , 7: 5.55}
+
+# percorso dove tieni le immagini (mae_1.png, mae_2.png, …)
+IMG_DIR = "static"          # cambialo se necessario
+IMG_PATTERN = "mae_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
+
+# --------------------------------------------------------------------
+with st.sidebar:
+    with st.expander("📊 MAE", expanded=True):
+        # etichette tab: "1", "2", …, "7"
+        tabs = st.tabs([str(i) for i in range(1, 8)])
+
+        # ciclo sincrono tab ↔ intervento
+        for i, tab in enumerate(tabs, start=1):
+            with tab:
+                # ➊  metrica numerica
+                st.metric(
+                    label=f"Intervention {i} MAE",
+                    value=f"{mae_dict[i]:.2f} kWh/m²·year",
+                )
+
+                # ➋  immagine relativa
+                img_path = os.path.join(IMG_DIR, IMG_PATTERN.format(i=i))
+                if os.path.exists(img_path):
+                    st.image(img_path, use_container_width=True)
+                else:
+                    st.info(f"Add image: {img_path}")
+                    # oppure, se preferisci l’upload on‑the‑fly:
+                    # img_file = st.file_uploader("Upload chart", type=["png","jpg"])
+                    # if img_file: st.image(img_file, use_container_width=True)
+
 #DEF FUNCTIONS
 
 def pred_NM(data,cat):          # NM_EP_GL_NREN_RAGGIUNG_{cat}
