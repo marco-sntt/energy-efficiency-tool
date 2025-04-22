@@ -1409,7 +1409,8 @@
 import streamlit as st, qrcode, io, os, pickle
 import pandas as pd
 
-# ---------- MODELLI ---------- #
+# IMPORT MODELLI 
+
 MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
 models     = {i: pickle.load(open(os.path.join(MODELS_DIR,f"XGBoost_{i}.pkl"),"rb"))  for i in range(1,8)}
 models_en  = {i: pickle.load(open(os.path.join(MODELS_DIR,f"XGBoost_EN_{i}.pkl"),"rb"))for i in range(1,8)}
@@ -1432,7 +1433,6 @@ feature_sets = {
        'Y_IE','RAPPORTO_SV','SUPERFICIE_DISPERDENTE',
        'SUPERF_UTILE_RISCALDATA','VOLUME_LORDO_RISCALDATO',
        'A_SOL_EST_A_SUP_UTILE'],
-    # modello 7 ≠ input utente (le colonne NM/DS sono generate dal codice)
     7:['CLASSE_ENERGETICA','EP_GL_NREN','EP_GL_REN',
        'NM_EP_GL_NREN_RAGGIUNG_1','DS_CLASSE_RAGGIUNGIBILE_1',
        'NM_EP_GL_NREN_RAGGIUNG_2','DS_CLASSE_RAGGIUNGIBILE_2',
@@ -1443,9 +1443,17 @@ feature_sets = {
        'NM_EP_GL_NREN_RAGGIUNG_7','DS_CLASSE_RAGGIUNGIBILE_7',
        'SUPERFICIE_DISPERDENTE','RAPPORTO_SV','EP_H_ND','Y_IE']
 }
-mae_dict={1:28.25,2:10.03,3:18.83,4:17.08,5:13.06,6:10.17,7:5.55}
+mae_dict={1:28.25,
+          2:10.03,
+          3:18.83,
+          4:17.08,
+          5:13.06,
+          6:10.17,
+          7:5.55
+}
 
-# ---------- FUNZIONI ---------- #
+#DEF FUNCTIONS
+
 def pred_NM(data,cat):          # NM_EP_GL_NREN_RAGGIUNG_{cat}
     df=pd.DataFrame([{k:data[k] for k in feature_sets[cat] if k in data}])
     return float(models[cat].predict(df)[0])
@@ -1463,50 +1471,68 @@ def union_features(selected):
     base|={f for f in feature_sets[7] if not f.startswith(("NM_","DS_"))}
     return sorted(base)
 
-# ---------- UI ---------- #
-st.set_page_config("ENERGY EFFICIENCY TOOL","wide")
-c1,c2=st.columns([4,1])
-with c1: st.title("ENERGY EFFICIENCY TOOL")
+#UI
+
+st.set_page_config(
+     page_title="ENERGY EFFICIENCY TOOL", 
+     layout="wide",
+     initial_sidebar_state="expanded"
+)
+c1,c2=st.columns([3,2])
+with c1: 
+    st.title("ENERGY EFFICIENCY TOOL")
+    st.markdown("""
+    **⚠️ This tool is valid only for buildings located in the Lombardy region, within climate zone E, belonging to category E.1, and with a gross floor area below 700 m²:**
+    - E.1(1): Buildings used as permanent residences (e.g., apartment buildings)
+    - E.1(2): Buildings used as non-permanent residences (e.g., holiday homes)
+    - E.1(3): Other residential buildings (e.g., student or worker residences)
+
+    ⚠️ Make sure your building meets **all** of these criteria before proceeding.
+
+    Fill in the fields below to estimate the impact of an energy-efficiency intervention on the building.
+    """)
+
 with c2:
     with st.expander("🔳 QR Code"):
         buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/").save(buf)
-        st.image(buf.getvalue(),use_column_width=True)
+        st.image(buf.getvalue(), use_container_width=True)
 
 if "sel" not in st.session_state: st.session_state.sel=[]
 
 with st.form("pick"):
-    st.subheader("Seleziona intervento/i")
+    st.subheader("Select intervention")
     tmp=[]
-    lbl={1:"1 – Involucro opaco",2:"2 – Involucro trasparente",3:"3 – Imp. riscaldamento",
-         4:"4 – Imp. raffrescamento",5:"5 – Fonti rinnovabili",6:"6 – Altri interventi"}
+    lbl={1:"1 - Opaque envelope",2:"2 - Transparent envelope",3:"3 - Heating system",
+         4:"4 - Cooling system",5:"5 - Renewable sources",6:"6 - Other intervention"}
     for i,t in lbl.items():
         if st.checkbox(t,value=(i in st.session_state.sel)): tmp.append(i)
-    if st.form_submit_button("Conferma"): st.session_state.sel=tmp
+    if st.form_submit_button("Confirm"): st.session_state.sel=tmp
 
 sel=st.session_state.sel
 if sel:
     req=union_features(sel)
     with st.form("bld"):
-        st.subheader("Dati edificio")
+        st.subheader("Building data")
         d={}
         def num(l): return st.number_input(l,min_value=0.0)
-        if "EP_GL_NREN"             in req: d["EP_GL_NREN"]=num("EP_GL_NREN (kWh/m²·anno)")
-        if "EP_GL_REN"              in req: d["EP_GL_REN"]=num("EP_GL_REN (kWh/m²·anno)")
-        if "EP_H_ND"                in req: d["EP_H_ND"]=num("EP_H_ND (kWh/m²·anno)")
-        if "CLASSE_ENERGETICA"      in req: d["CLASSE_ENERGETICA"]=st.selectbox("Classe (1=A4…10=G)",range(1,11))-1
+        if "EP_GL_NREN"             in req: d["EP_GL_NREN"]=num("EP_GL_NREN (kWh/m²·year)")
+        if "EP_GL_REN"              in req: d["EP_GL_REN"]=num("EP_GL_REN (kWh/m²·year)")
+        if "EP_H_ND"                in req: d["EP_H_ND"]=num("EP_H_ND (kWh/m²·year)")
+        if "CLASSE_ENERGETICA"      in req: d["CLASSE_ENERGETICA"]=st.selectbox("Energy class (1=A4…10=G)",range(1,11))-1
         if "RAPPORTO_SV"            in req: d["RAPPORTO_SV"]=num("S/V ratio")
-        if "SUPERFICIE_DISPERDENTE" in req: d["SUPERFICIE_DISPERDENTE"]=num("Superficie disperdente (m²)")
-        if "Y_IE"                   in req: d["Y_IE"]=num("Y_IE")
-        if "VOLUME_LORDO_RISCALDATO" in req: d["VOLUME_LORDO_RISCALDATO"]=num("Vol. lordo riscaldato (m³)")
-        if "SUPERF_UTILE_RISCALDATA" in req: d["SUPERF_UTILE_RISCALDATA"]=num("Sup. utile riscaldata (m²)")
-        if "A_SOL_EST_A_SUP_UTILE"   in req: d["A_SOL_EST_A_SUP_UTILE"]=num("Rapporto area solare/utile")
-        if "VOLUME_LORDO_RAFFRESCATO" in req:d["VOLUME_LORDO_RAFFRESCATO"]=num("Vol. lordo raffrescato (m³)")
-        if "SUPERF_UTILE_RAFFRESCATA" in req:d["SUPERF_UTILE_RAFFRESCATA"]=num("Sup. utile raffrescata (m²)")
-        go=st.form_submit_button("Calcola")
+        if "SUPERFICIE_DISPERDENTE" in req: d["SUPERFICIE_DISPERDENTE"]=num("Dispersing surface (m²)")
+        if "Y_IE"                   in req: d["Y_IE"]=num("Y_IE (W/m²·K)")
+        if "VOLUME_LORDO_RISCALDATO" in req: d["VOLUME_LORDO_RISCALDATO"]=num("Gross heated volume (m³)")
+        if "SUPERF_UTILE_RISCALDATA" in req: d["SUPERF_UTILE_RISCALDATA"]=num("Heated useful area (m²)")
+        if "A_SOL_EST_A_SUP_UTILE"   in req: d["A_SOL_EST_A_SUP_UTILE"]=num("Summer equivalent solar area/unit of useful surface")
+        if "VOLUME_LORDO_RAFFRESCATO" in req:d["VOLUME_LORDO_RAFFRESCATO"]=num("Gross cooled volume (m³)")
+        if "SUPERF_UTILE_RAFFRESCATA" in req:d["SUPERF_UTILE_RAFFRESCATA"]=num("Cooled useful area (m²)")
+        
+        go=st.form_submit_button("Run calculation")
 
     if go:
         if {"EP_GL_NREN","CLASSE_ENERGETICA"}-d.keys():
-            st.error("Servono EP_GL_NREN e Classe energetica."); st.stop()
+            st.error("EP_GL_NREN and Energy class are required."); st.stop()
 
         try:
             # 1) predizioni singole NM + DS
@@ -1537,16 +1563,13 @@ if sel:
 
             # ---------- OUTPUT ---------- #
             if len(sel)>1:
-                st.subheader("Risultati singoli")
+                st.subheader("Single results")
                 for i in sel:
-                    st.write(f"**Intervento {i}**  –  NM: {nm_sing[i]:.2f} kWh/m²·a,  Classe: {ds_sing[i]+1}")
+                    st.success(f"**Intervention {i}** | EP_GL_NREN_achievable: {nm_sing[i]:.2f} kWh/m²·year, Energy class achievable: {ds_sing[i]+1}")
 
             mae=mae_dict[7 if len(sel)>1 else sel[0]]
-            st.subheader("Risultato combinato" if len(sel)>1 else "Risultato")
-            st.success(f"NM_EP_GL_NREN_RAGGIUNG_7: **{nm7:.2f}** kWh/m²·anno   (MAE ±{mae})")
-            if "EP_GL_NREN" in d:
-                st.metric("Delta vs attuale",f"{d['EP_GL_NREN']-nm7:+.2f}")
-            st.info(f"Classe energetica raggiungibile: **{ds7+1}**")
+            st.subheader("Combined result" if len(sel)>1 else "Result")
+            st.success(f"EP_GL_NREN_achievable: **{nm7:.2f}** kWh/m²·year, Energy class achievable: {ds7+1})")
 
         except Exception as e:
-            st.error(f"Errore: {e}")
+            st.error(f"Error: {e}")
