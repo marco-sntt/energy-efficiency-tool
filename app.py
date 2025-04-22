@@ -1473,6 +1473,14 @@ mae_dict={1:28.25,
           6:10.17,
           7:5.55
 }
+accuracy_en={1:69.04,
+             2:73.25,
+             3:75.80,
+             4:64.48,
+             5:69.47,
+             6:78.05,
+             7:88.30
+}
 
 #SIDEBAR
 
@@ -1481,8 +1489,8 @@ mae_dict={1:28.25,
 
 # percorso dove tieni le immagini (mae_1.png, mae_2.png, …)
 IMG_DIR = "static"          # cambialo se necessario
-IMG_PATTERN = "mae_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
-
+IMG_PATTERN_1 = "mae_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
+IMG_PATTERN_2 = "acc_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
 # --------------------------------------------------------------------
 with st.sidebar:
     with st.expander("📊 MAE-EP_GL_NREN", expanded=True):
@@ -1495,11 +1503,11 @@ with st.sidebar:
                 # ➊  metrica numerica
                 st.metric(
                     label=f"MAE Intervention {i}",
-                    value=f"±{mae_dict[i]:.2f} kWh/m²·year",
+                    value=f"± {mae_dict[i]:.2f} kWh/m²·year",
                 )
 
                 # ➋  immagine relativa
-                img_path = os.path.join(IMG_DIR, IMG_PATTERN.format(i=i))
+                img_path = os.path.join(IMG_DIR, IMG_PATTERN_1.format(i=i))
                 if os.path.exists(img_path):
                     st.image(img_path, use_container_width=True)
                 else:
@@ -1508,7 +1516,7 @@ with st.sidebar:
                     # img_file = st.file_uploader("Upload chart", type=["png","jpg"])
                     # if img_file: st.image(img_file, use_container_width=True)
 
-    with st.expander("📊 MAE-Energy class", expanded=True):
+    with st.expander("📊 Accuracy-Energy class", expanded=True):
         # etichette tab: "1", "2", …, "7"
         tabs = st.tabs([str(i) for i in range(1, 8)])
 
@@ -1517,12 +1525,12 @@ with st.sidebar:
             with tab:
                 # ➊  metrica numerica
                 st.metric(
-                    label=f"MAE Intervention {i}",
-                    value=f"±{mae_dict[i]:.2f} kWh/m²·year",
+                    label=f"Accuracy Intervention {i}",
+                    value=f"{accuracy_en[i]:.2f} %",
                 )
 
                 # ➋  immagine relativa
-                img_path = os.path.join(IMG_DIR, IMG_PATTERN.format(i=i))
+                img_path = os.path.join(IMG_DIR, IMG_PATTERN_2.format(i=i))
                 if os.path.exists(img_path):
                     st.image(img_path, use_container_width=True)
                 else:
