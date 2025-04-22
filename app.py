@@ -1409,10 +1409,26 @@
 import streamlit as st, qrcode, io, os, pickle
 import pandas as pd
 
+#CONFIGURA PAGINA
+
 st.set_page_config(
      page_title="ENERGY EFFICIENCY TOOL", 
      layout="wide",
      initial_sidebar_state="expanded"
+)
+
+#CONFIGURA CARATTERE MAE
+
+st.markdown(
+    """
+    <style>
+    /* ridimensiona SOLO i metric che stanno nella sidebar */
+    section[data-testid="stSidebar"] div[data-testid="stMetricValue"] {
+        font-size: 0.9rem;     /* valore principale  (default ≃1.25rem) */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
 # IMPORT MODELLI 
@@ -1469,7 +1485,7 @@ IMG_PATTERN = "mae_{i}.png" # <‑‑ nome file per il grafico dell’intervento
 
 # --------------------------------------------------------------------
 with st.sidebar:
-    with st.expander("📊 MAE", expanded=True):
+    with st.expander("📊 MAE-EP_GL_NREN", expanded=True):
         # etichette tab: "1", "2", …, "7"
         tabs = st.tabs([str(i) for i in range(1, 8)])
 
@@ -1478,8 +1494,31 @@ with st.sidebar:
             with tab:
                 # ➊  metrica numerica
                 st.metric(
-                    label=f"Intervention {i} MAE",
-                    value=f"{mae_dict[i]:.2f} kWh/m²·year",
+                    label=f"MAE Intervention {i}",
+                    value=f"±{mae_dict[i]:.2f} kWh/m²·year",
+                )
+
+                # ➋  immagine relativa
+                img_path = os.path.join(IMG_DIR, IMG_PATTERN.format(i=i))
+                if os.path.exists(img_path):
+                    st.image(img_path, use_container_width=True)
+                else:
+                    st.info(f"Add image: {img_path}")
+                    # oppure, se preferisci l’upload on‑the‑fly:
+                    # img_file = st.file_uploader("Upload chart", type=["png","jpg"])
+                    # if img_file: st.image(img_file, use_container_width=True)
+
+    with st.expander("📊 MAE-Energy class", expanded=True):
+        # etichette tab: "1", "2", …, "7"
+        tabs = st.tabs([str(i) for i in range(1, 8)])
+
+        # ciclo sincrono tab ↔ intervento
+        for i, tab in enumerate(tabs, start=1):
+            with tab:
+                # ➊  metrica numerica
+                st.metric(
+                    label=f"MAE Intervention {i}",
+                    value=f"±{mae_dict[i]:.2f} kWh/m²·year",
                 )
 
                 # ➋  immagine relativa
