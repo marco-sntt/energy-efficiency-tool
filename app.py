@@ -1409,6 +1409,12 @@
 import streamlit as st, qrcode, io, os, pickle
 import pandas as pd
 
+st.set_page_config(
+     page_title="ENERGY EFFICIENCY TOOL", 
+     layout="wide",
+     initial_sidebar_state="expanded"
+)
+
 # IMPORT MODELLI 
 
 MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
@@ -1453,9 +1459,6 @@ mae_dict={1:28.25,
 }
 
 #SIDEBAR
-
-import streamlit as st
-import os, pandas as pd
 
 # —–—  dizionario MAE già definito altrove  —–—
 # mae_dict = {1: 28.25, 2: 10.03, ... , 7: 5.55}
@@ -1510,11 +1513,6 @@ def union_features(selected):
 
 #UI
 
-st.set_page_config(
-     page_title="ENERGY EFFICIENCY TOOL", 
-     layout="wide",
-     initial_sidebar_state="expanded"
-)
 c1,c2=st.columns([4,1])
 with c1: 
     st.title("ENERGY EFFICIENCY TOOL")
