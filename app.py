@@ -1252,212 +1252,153 @@
 #                 st.error(f"An error occurred during prediction for intervention {intervention_type}: {e}")
 
 #NONA VERSIONE: con classe 7
-
 import streamlit as st
-import qrcode
-import io
+import qrcode, io, os, pickle
 import pandas as pd
-import pickle
-import os
 
-# --- Caricamento modelli XGBoost (1–7) --- #
+# ------------------------ MODELLI ------------------------ #
 MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
-models = {}
-models_en = {}
-for i in range(1, 8):
-    with open(os.path.join(MODELS_DIR, f"XGBoost_{i}.pkl"), "rb") as f:
-        models[i] = pickle.load(f)
-    with open(os.path.join(MODELS_DIR, f"XGBoost_EN_{i}.pkl"), "rb") as f:
-        models_en[i] = pickle.load(f)
+models      = {i: pickle.load(open(os.path.join(MODELS_DIR, f"XGBoost_{i}.pkl"),     "rb")) for i in range(1,8)}
+models_en   = {i: pickle.load(open(os.path.join(MODELS_DIR, f"XGBoost_EN_{i}.pkl"),  "rb")) for i in range(1,8)}
 
-# --- Feature richieste da ciascun modello --- #
 feature_sets = {
-    1: ['EP_GL_NREN', 'EP_H_ND', 'CLASSE_ENERGETICA', 'RAPPORTO_SV',
-        'SUPERFICIE_DISPERDENTE', 'Y_IE', 'VOLUME_LORDO_RISCALDATO'],
-    2: ['EP_GL_NREN', 'EP_H_ND', 'CLASSE_ENERGETICA', 'RAPPORTO_SV',
-        'SUPERFICIE_DISPERDENTE', 'Y_IE'],
-    3: ['EP_GL_NREN', 'EP_H_ND', 'CLASSE_ENERGETICA', 'Y_IE',
-        'RAPPORTO_SV', 'SUPERFICIE_DISPERDENTE'],
-    4: ['EP_GL_NREN', 'EP_H_ND', 'CLASSE_ENERGETICA', 'Y_IE',
-        'RAPPORTO_SV', 'EP_GL_REN', 'SUPERFICIE_DISPERDENTE'],
-    5: ['EP_GL_NREN', 'EP_H_ND', 'RAPPORTO_SV', 'CLASSE_ENERGETICA',
-        'EP_GL_REN', 'VOLUME_LORDO_RISCALDATO', 'Y_IE',
-        'SUPERFICIE_DISPERDENTE', 'SUPERF_UTILE_RISCALDATA',
-        'A_SOL_EST_A_SUP_UTILE', 'VOLUME_LORDO_RAFFRESCATO',
+    1: ['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','RAPPORTO_SV',
+        'SUPERFICIE_DISPERDENTE','Y_IE','VOLUME_LORDO_RISCALDATO'],
+    2: ['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','RAPPORTO_SV',
+        'SUPERFICIE_DISPERDENTE','Y_IE'],
+    3: ['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','Y_IE',
+        'RAPPORTO_SV','SUPERFICIE_DISPERDENTE'],
+    4: ['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','Y_IE',
+        'RAPPORTO_SV','EP_GL_REN','SUPERFICIE_DISPERDENTE'],
+    5: ['EP_GL_NREN','EP_H_ND','RAPPORTO_SV','CLASSE_ENERGETICA',
+        'EP_GL_REN','VOLUME_LORDO_RISCALDATO','Y_IE',
+        'SUPERFICIE_DISPERDENTE','SUPERF_UTILE_RISCALDATA',
+        'A_SOL_EST_A_SUP_UTILE','VOLUME_LORDO_RAFFRESCATO',
         'SUPERF_UTILE_RAFFRESCATA'],
-    6: ['EP_GL_NREN', 'EP_H_ND', 'CLASSE_ENERGETICA', 'EP_GL_REN',
-        'Y_IE', 'RAPPORTO_SV', 'SUPERFICIE_DISPERDENTE',
-        'SUPERF_UTILE_RISCALDATA', 'VOLUME_LORDO_RISCALDATO',
+    6: ['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','EP_GL_REN',
+        'Y_IE','RAPPORTO_SV','SUPERFICIE_DISPERDENTE',
+        'SUPERF_UTILE_RISCALDATA','VOLUME_LORDO_RISCALDATO',
         'A_SOL_EST_A_SUP_UTILE'],
-    7: [  # modello combinato per 2+ interventi
-        'CLASSE_ENERGETICA', 'EP_GL_NREN', 'EP_GL_REN',
-        'NM_EP_GL_NREN_RAGGIUNG_1', 'NM_EP_GL_NREN_RAGGIUNG_2',
-        'NM_EP_GL_NREN_RAGGIUNG_3', 'NM_EP_GL_NREN_RAGGIUNG_4',
-        'NM_EP_GL_NREN_RAGGIUNG_5', 'NM_EP_GL_NREN_RAGGIUNG_6',
-        'SUPERFICIE_DISPERDENTE', 'RAPPORTO_SV', 'EP_H_ND', 'Y_IE'
-    ],
+    7: ['CLASSE_ENERGETICA','EP_GL_NREN','EP_GL_REN',
+        'NM_EP_GL_NREN_RAGGIUNG_1','NM_EP_GL_NREN_RAGGIUNG_2',
+        'NM_EP_GL_NREN_RAGGIUNG_3','NM_EP_GL_NREN_RAGGIUNG_4',
+        'NM_EP_GL_NREN_RAGGIUNG_5','NM_EP_GL_NREN_RAGGIUNG_6',
+        'SUPERFICIE_DISPERDENTE','RAPPORTO_SV','EP_H_ND','Y_IE'],
 }
 
-# --- MAE per ciascun modello --- #
-mae_dict = {
-    1: 28.25,
-    2: 10.03,
-    3: 18.83,
-    4: 17.08,
-    5: 13.06,
-    6: 10.17,
-    7: 5.55,
-}
+mae_dict = {1:28.25, 2:10.03, 3:18.83, 4:17.08, 5:13.06, 6:10.17, 7:5.55}
 
-# --- Funzioni di predizione --- #
-def predizione_intervento(input_data: dict, categoria: int) -> float:
-    feats = feature_sets[categoria]
-    X = pd.DataFrame([{k: input_data[k] for k in feats if k in input_data}])
-    return models[categoria].predict(X)[0]
+# ------------------------ FUNZIONI ------------------------ #
+def predizione_intervento(data:dict, cat:int)->float:
+    df = pd.DataFrame([{k:data[k] for k in feature_sets[cat] if k in data}])
+    return float(models[cat].predict(df)[0])
 
-def predizione_classe_energetica(nm_raggiung: float, ep_gl_nren: float,
-                                 classe: int, categoria: int) -> int:
-    col_nm = f"NM_EP_GL_NREN_RAGGIUNG_{categoria}"
-    df = pd.DataFrame([{
-        col_nm: nm_raggiung,
-        "CLASSE_ENERGETICA": classe,
-        "EP_GL_NREN": ep_gl_nren
-    }])
-    model_en = models_en[categoria]
-    df = df[model_en.feature_names_in_]
-    return int(model_en.predict(df)[0])
+def predizione_classe(nm, ep_att, cls_att, cat:int)->int:
+    col = f"NM_EP_GL_NREN_RAGGIUNG_{cat}"
+    df = pd.DataFrame([{col:nm,"CLASSE_ENERGETICA":cls_att,"EP_GL_NREN":ep_att}])
+    df = df[models_en[cat].feature_names_in_]
+    return int(models_en[cat].predict(df)[0])
 
-# --- Streamlit UI --- #
-st.set_page_config(page_title="ENERGY EFFICIENCY TOOL", layout="wide")
-col_main, col_right = st.columns([4, 1])
+def base_features(selected:list)->list:
+    """Unione feature dei modelli selezionati + feature "utente" del modello 7"""
+    base = set()
+    for i in selected:
+        base |= set(feature_sets[i])
+    # aggiungo le feature 'generali' del 7 (tutte tranne le NM_EP_*)
+    base |= {f for f in feature_sets[7] if not f.startswith("NM_EP_")}
+    return sorted(base)
 
+# ------------------------ UI ------------------------ #
+st.set_page_config("ENERGY EFFICIENCY TOOL","wide")
+col_main,col_right = st.columns([4,1])
 with col_main:
     st.title("ENERGY EFFICIENCY TOOL")
-    st.markdown("""
-    **⚠️ Solo per edifici in Lombardia, zona climatica E, categoria E.1**  
-    Seleziona uno o più interventi e inserisci i dati richiesti.
-    """)
-
+    st.write("**⚠️ Valido solo per edifici in Lombardia – zona E – categoria E.1**")
 with col_right:
     with st.expander("🔳 QR Code"):
-        url = "https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/"
-        img = qrcode.make(url)
-        buf = io.BytesIO(); img.save(buf)
-        st.image(buf.getvalue(), use_column_width=True)
+        buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/").save(buf)
+        st.image(buf.getvalue(),use_column_width=True)
 
-if "selected_interventions" not in st.session_state:
-    st.session_state.selected_interventions = []
+if "selected" not in st.session_state: st.session_state.selected=[]
 
-# --- Selezione interventi --- #
-with st.form("intervention_form"):
+# --- scelta interventi --- #
+with st.form("choose"):
     st.subheader("Seleziona intervento/i")
-    temp = []
-    labels = {
-        1: "1 – Involucro opaco",
-        2: "2 – Involucro trasparente",
-        3: "3 – Impianto riscaldamento",
-        4: "4 – Impianto raffrescamento",
-        5: "5 – Fonti rinnovabili",
-        6: "6 – Altri interventi",
-    }
-    for i, txt in labels.items():
-        if st.checkbox(txt, value=(i in st.session_state.selected_interventions)):
-            temp.append(i)
-    submitted = st.form_submit_button("Conferma")
+    tmp=[]
+    labels={1:"1 – Involucro opaco",2:"2 – Involucro trasparente",3:"3 – Imp. riscaldamento",
+            4:"4 – Imp. raffrescamento",5:"5 – Fonti rinnovabili",6:"6 – Altri interventi"}
+    for i,text in labels.items():
+        if st.checkbox(text,value=(i in st.session_state.selected)): tmp.append(i)
+    ok=st.form_submit_button("Conferma")
+if ok:
+    st.session_state.selected=tmp
+    if not tmp: st.error("Seleziona almeno un intervento")
 
-if submitted:
-    st.session_state.selected_interventions = temp
-    if not temp:
-        st.error("Seleziona almeno un intervento prima di procedere.")
-
-# --- Inserimento dati edificio --- #
-sel = st.session_state.selected_interventions
+sel=st.session_state.selected
 if sel:
-    # unione delle feature necessarie per i singoli modelli selezionati
-    if len(sel) > 1:
-        needed_fields = set()
-        for i in sel:
-            needed_fields |= set(feature_sets[i])
-        model_categoria = 7
-    else:
-        model_categoria = sel[0]
-        needed_fields = set(feature_sets[model_categoria])
-
-    with st.form("building_data_form"):
-        st.subheader("Dati edificio")
-        input_data = {}
-        if "EP_GL_NREN" in needed_fields:
-            input_data["EP_GL_NREN"] = st.number_input("EP_GL_NREN (kWh/m²·anno)", min_value=0.0)
-        if "EP_GL_REN" in needed_fields:
-            input_data["EP_GL_REN"] = st.number_input("EP_GL_REN (kWh/m²·anno)", min_value=0.0)
-        if "EP_H_ND" in needed_fields:
-            input_data["EP_H_ND"] = st.number_input("EP_H_ND (kWh/m²·anno)", min_value=0.0)
-        if "CLASSE_ENERGETICA" in needed_fields:
-            cls = st.selectbox("Classe energetica (1 = A4 … 10 = G)", list(range(1,11)))
-            input_data["CLASSE_ENERGETICA"] = cls - 1
-        if "RAPPORTO_SV" in needed_fields:
-            input_data["RAPPORTO_SV"] = st.number_input("S/V ratio", min_value=0.0)
-        if "SUPERFICIE_DISPERDENTE" in needed_fields:
-            input_data["SUPERFICIE_DISPERDENTE"] = st.number_input("Superf. disperdente (m²)", min_value=0.0)
-        if "Y_IE" in needed_fields:
-            input_data["Y_IE"] = st.number_input("Y_IE", min_value=0.0)
-        if "VOLUME_LORDO_RISCALDATO" in needed_fields:
-            input_data["VOLUME_LORDO_RISCALDATO"] = st.number_input("Vol. lordo riscaldato (m³)", min_value=0.0)
-        if "SUPERF_UTILE_RISCALDATA" in needed_fields:
-            input_data["SUPERF_UTILE_RISCALDATA"] = st.number_input("Superf. utile riscaldata (m²)", min_value=0.0)
-        if "A_SOL_EST_A_SUP_UTILE" in needed_fields:
-            input_data["A_SOL_EST_A_SUP_UTILE"] = st.number_input("Rapporto area solare/utile", min_value=0.0)
-        if "VOLUME_LORDO_RAFFRESCATO" in needed_fields:
-            input_data["VOLUME_LORDO_RAFFRESCATO"] = st.number_input("Vol. lordo raffrescato (m³)", min_value=0.0)
-        if "SUPERF_UTILE_RAFFRESCATA" in needed_fields:
-            input_data["SUPERF_UTILE_RAFFRESCATA"] = st.number_input("Superf. utile raffrescata (m²)", min_value=0.0)
-
-        calc = st.form_submit_button("Calcola")
+    # -------- input edificio -------- #
+    required=base_features(sel)
+    with st.form("building"):
+        st.subheader("Dati edificio richiesti")
+        data={}
+        # blocco campi in modo semplice
+        def num(label): return st.number_input(label,min_value=0.0)
+        if "EP_GL_NREN"              in required: data["EP_GL_NREN"]=num("EP_GL_NREN (kWh/m²·anno)")
+        if "EP_GL_REN"               in required: data["EP_GL_REN"]=num("EP_GL_REN (kWh/m²·anno)")
+        if "EP_H_ND"                 in required: data["EP_H_ND"]=num("EP_H_ND (kWh/m²·anno)")
+        if "CLASSE_ENERGETICA"       in required:
+            data["CLASSE_ENERGETICA"]=st.selectbox("Classe (1=A4 … 10=G)",list(range(1,11)))-1
+        if "RAPPORTO_SV"             in required: data["RAPPORTO_SV"]=num("S/V ratio")
+        if "SUPERFICIE_DISPERDENTE"  in required: data["SUPERFICIE_DISPERDENTE"]=num("Superficie disperdente (m²)")
+        if "Y_IE"                    in required: data["Y_IE"]=num("Y_IE")
+        if "VOLUME_LORDO_RISCALDATO" in required: data["VOLUME_LORDO_RISCALDATO"]=num("Vol. lordo riscaldato (m³)")
+        if "SUPERF_UTILE_RISCALDATA" in required: data["SUPERF_UTILE_RISCALDATA"]=num("Sup. utile riscaldata (m²)")
+        if "A_SOL_EST_A_SUP_UTILE"   in required: data["A_SOL_EST_A_SUP_UTILE"]=num("Rapporto area solare/utile")
+        if "VOLUME_LORDO_RAFFRESCATO" in required:data["VOLUME_LORDO_RAFFRESCATO"]=num("Vol. lordo raffrescato (m³)")
+        if "SUPERF_UTILE_RAFFRESCATA" in required:data["SUPERF_UTILE_RAFFRESCATA"]=num("Sup. utile raffrescata (m²)")
+        calc=st.form_submit_button("Calcola")
 
     if calc:
-        if "EP_GL_NREN" in needed_fields and "CLASSE_ENERGETICA" not in input_data:
-            st.error("Occorrono EP_GL_NREN e Classe energetica.")
+        # check minimi
+        need=["EP_GL_NREN","CLASSE_ENERGETICA"]
+        if any(n in required for n in need) and any(n not in data for n in need):
+            st.error("Sono obbligatori EP_GL_NREN e Classe energetica")
             st.stop()
 
         try:
-            # predizioni singole
-            nm_preds = {i: predizione_intervento(input_data.copy(), i) for i in sel}
-            # per completezza, zero per non selezionati
-            for i in range(1,7):
-                nm_preds.setdefault(i, 0.0)
-
-            # se multi-intervento, aggiungo la predizione combinata
-            if len(sel) > 1:
-                comb_in = {}
-                for feat in feature_sets[7]:
-                    if feat.startswith("NM_EP_GL_NREN_RAGGIUNG_"):
-                        idx = int(feat.rsplit("_",1)[-1])
-                        comb_in[feat] = nm_preds[idx]
-                    else:
-                        comb_in[feat] = input_data.get(feat, 0.0)
-                nm_preds[7] = models[7].predict(pd.DataFrame([comb_in]))[0]
-
-            # visualizzo metriche
-            st.subheader("Risultati")
+            # ---------- predizioni singole ---------- #
+            single_preds={}
             for i in sel:
-                st.metric(f"Intervento {i}", f"{nm_preds[i]:.2f} kWh/m²·anno")
-            if len(sel) > 1:
-                mae7 = mae_dict[7]
-                val7 = nm_preds[7]
-                st.metric(f"Combinato ({', '.join(map(str, sel))})",
-                          f"{val7:.2f} kWh/m²·anno",
-                          delta=f"±{mae7:.2f}")
+                single_preds[i]=predizione_intervento(data.copy(),i)
 
-            # nuova classe energetica
-            if "EP_GL_NREN" in input_data and "CLASSE_ENERGETICA" in input_data:
-                cat = 7 if len(sel)>1 else sel[0]
-                new_cls = predizione_classe_energetica(
-                    nm_raggiung=nm_preds[cat],
-                    ep_gl_nren=input_data["EP_GL_NREN"],
-                    classe=input_data["CLASSE_ENERGETICA"],
-                    categoria=cat
-                )
-                st.info(f"Nuova classe energetica: {new_cls + 1}")
+            # ---------- predizione combinata ---------- #
+            if len(sel)>1:
+                nm_inputs={f"NM_EP_GL_NREN_RAGGIUNG_{k}":single_preds.get(k,0.0) for k in range(1,7)}
+                comb_in={**{f:data.get(f,0.0) for f in feature_sets[7] if not f.startswith("NM_EP_")},**nm_inputs}
+                combined=predizione_intervento(comb_in,7)
+            else:
+                combined=list(single_preds.values())[0]  # unico intervento
+
+            # ---------- output ---------- #
+            if len(sel)>1:
+                st.subheader("Predizioni singole")
+                for i,val in single_preds.items():
+                    st.metric(f"Intervento {i}",f"{val:.2f} kWh/m²·anno")
+
+            mae=mae_dict[7 if len(sel)>1 else sel[0]]
+            low=max(combined-mae,0); up=combined+mae
+            delta=data.get("EP_GL_NREN",0)-combined if "EP_GL_NREN" in data else None
+
+            st.subheader("Risultato combinato" if len(sel)>1 else "Risultato")
+            st.success(f"EP_GL_NREN previsto: {combined:.2f} kWh/m²·anno")
+            st.write(f"Intervallo ± MAE: [{low:.2f}, {up:.2f}]")
+            if delta is not None: st.metric("Delta vs attuale",f"{delta:+.2f}")
+
+            # classe energetica
+            if {"EP_GL_NREN","CLASSE_ENERGETICA"}<=data.keys():
+                cat=7 if len(sel)>1 else sel[0]
+                new_cls=predizione_classe(combined,data["EP_GL_NREN"],data["CLASSE_ENERGETICA"],cat)
+                st.info(f"Nuova classe energetica: {new_cls+1}")
 
         except Exception as e:
             st.error(f"Errore durante la predizione: {e}")
