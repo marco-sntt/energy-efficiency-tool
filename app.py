@@ -1514,19 +1514,71 @@ if sel:
     with st.form("bld"):
         st.subheader("Building data")
         d={}
-        def num(l): return st.number_input(l,min_value=0.0)
-        if "EP_GL_NREN"             in req: d["EP_GL_NREN"]=num("EP_GL_NREN (kWh/m²·year)")
-        if "EP_GL_REN"              in req: d["EP_GL_REN"]=num("EP_GL_REN (kWh/m²·year)")
-        if "EP_H_ND"                in req: d["EP_H_ND"]=num("EP_H_ND (kWh/m²·year)")
-        if "CLASSE_ENERGETICA"      in req: d["CLASSE_ENERGETICA"]=st.selectbox("Energy class (1=A4…10=G)",range(1,11))-1
-        if "RAPPORTO_SV"            in req: d["RAPPORTO_SV"]=num("S/V ratio")
-        if "SUPERFICIE_DISPERDENTE" in req: d["SUPERFICIE_DISPERDENTE"]=num("Dispersing surface (m²)")
-        if "Y_IE"                   in req: d["Y_IE"]=num("Y_IE (W/m²·K)")
-        if "VOLUME_LORDO_RISCALDATO" in req: d["VOLUME_LORDO_RISCALDATO"]=num("Gross heated volume (m³)")
-        if "SUPERF_UTILE_RISCALDATA" in req: d["SUPERF_UTILE_RISCALDATA"]=num("Heated useful area (m²)")
-        if "A_SOL_EST_A_SUP_UTILE"   in req: d["A_SOL_EST_A_SUP_UTILE"]=num("Summer equivalent solar area/unit of useful surface")
-        if "VOLUME_LORDO_RAFFRESCATO" in req:d["VOLUME_LORDO_RAFFRESCATO"]=num("Gross cooled volume (m³)")
-        if "SUPERF_UTILE_RAFFRESCATA" in req:d["SUPERF_UTILE_RAFFRESCATA"]=num("Cooled useful area (m²)")
+        def num(label, hint): return st.number_input(label, min_value=0.0, help=hint)
+        if "EP_GL_NREN" in req: 
+            d["EP_GL_NREN"]=num(
+                "EP_GL_NREN (kWh/m²·year)",
+                "Non-renewable global energy performance index (kWh/m²·year)"
+            )
+        if "EP_GL_REN" in req:
+            d["EP_GL_REN"]=num(
+                "EP_GL_REN (kWh/m²·year)"
+                "Renewable global energy performance index (kWh/m²·year)"
+            )
+        if "EP_H_ND" in req:
+            d["EP_H_ND"]=num(
+                "EP_H_ND (kWh/m²·year)"
+                "Thermal energy demand for heating (kWh/m²·year)"
+            )
+        if "CLASSE_ENERGETICA" in req:
+            d["CLASSE_ENERGETICA"] = (
+                st.selectbox(
+                    "Energy class (1=A4 …10=G)",
+                    range(1, 11),
+                    help="Current energy class of the building (A4→1 … G→10)", 
+                )
+                -1
+            )
+        if "RAPPORTO_SV" in req:
+            d["RAPPORTO_SV"]=num(
+                "S/V ratio"
+                "Ratio between heat loss surface and heated volume"
+            )
+        if "SUPERFICIE_DISPERDENTE" in req:
+            d["SUPERFICIE_DISPERDENTE"]=num(
+                "Dispersing surface (m²)"
+                "Total surface area of the energy-dispersing envelope (m²)"
+            )
+        if "Y_IE" in req:
+            d["Y_IE"]=num(
+                "Y_IE (W/m²·K)"
+                "Periodic thermal transmittance (W/m²·K)"
+            )
+        if "VOLUME_LORDO_RISCALDATO" in req:
+            d["VOLUME_LORDO_RISCALDATO"]=num(
+                "Gross heated volume (m³)"
+                "Gross heated volume (m³)"
+            )
+        if "SUPERF_UTILE_RISCALDATA" in req:
+            d["SUPERF_UTILE_RISCALDATA"]=num(
+                "Heated useful area (m²)"
+                "Heated useful floor area of the building (m²)"
+            )
+        if "A_SOL_EST_A_SUP_UTILE" in req:
+            d["A_SOL_EST_A_SUP_UTILE"]=num(
+                "Summer equivalent solar area/unit of useful surface"
+                "Summer equivalent solar area per unit of useful surface"
+            )
+        if "VOLUME_LORDO_RAFFRESCATO" in req:
+            d["VOLUME_LORDO_RAFFRESCATO"]=num(
+                "Gross cooled volume (m³)"
+                "Gross cooled volume (m³)"
+            )
+        if "SUPERF_UTILE_RAFFRESCATA" in req:
+            d["SUPERF_UTILE_RAFFRESCATA"]=num(
+                "Cooled useful area (m²)"
+                "Cooled useful floor area of the building (m²)"
+            )
         
         go=st.form_submit_button("Run calculation")
 
