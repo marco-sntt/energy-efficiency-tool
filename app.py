@@ -1778,6 +1778,7 @@
 
 import streamlit as st, qrcode, io, os, pickle
 import pandas as pd
+import streamlit.components.v1 as components
 
 st.set_page_config(
      page_title="ENERGY EFFICIENCY TOOL", 
@@ -2131,7 +2132,28 @@ with c1:
 with c2:
     with st.expander("🔳 QR Code"):
         buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/").save(buf)
-        st.image(buf.getvalue(), use_container_width=True)
+        st.image(buf.getvalue(), use_container_width=True
+        )
+
+        # Heatmap Classe
+    with st.expander("🔥 Heatmap Classe"):
+        with open("Heatmap_CLASSE.html", "r", encoding="utf-8") as f:
+            html_classe = f.read()
+        components.html(
+            html_classe,
+            height=500,
+            scrolling=True
+        )
+
+        # Heatmap EP_GL_NREN
+    with st.expander("🌡️ Heatmap EP_GL_NREN"):
+        with open("Heatmap_EP_GL_NRE N.html", "r", encoding="utf-8") as f:
+            html_ep = f.read()
+        components.html(
+            html_ep,
+            height=500,
+            scrolling=True
+        )
 
 if "sel" not in st.session_state: st.session_state.sel=[]
 
