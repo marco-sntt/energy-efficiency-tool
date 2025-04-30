@@ -1946,7 +1946,6 @@ feature_limits_en = {
         'NM_EP_GL_NREN_RAGGIUNG_5': (0.00, 570.21),
         'DS_CLASSE_RAGGIUNGIBILE_6': (0.00, 10.00),
         'NM_EP_GL_NREN_RAGGIUNG_6': (0.00, 567.96),
-        'DS_CLASSE_RAGGIUNGIBILE_7': (1.00, 10.00),
         'NM_EP_GL_NREN_RAGGIUNG_7': (0.02, 579.33),
         'SUPERFICIE_DISPERDENTE': (4.30, 447.28),
         'RAPPORTO_SV': (0.01, 1.56),
@@ -1955,8 +1954,11 @@ feature_limits_en = {
         }
 
 def compute_agg_limits(sel):
-    """Restituisce {feature: (min_agg, max_agg)} per l’intersezione di tutti i modelli in sel."""
+    """Restituisce {feature: (min_agg, max_agg)} per l’intersezione 
+    di tutti i modelli in sel, e – se >1 intervento – include anche 
+    i vincoli di feature_limits[7] e feature_limits_en[7]."""
     agg = {}
+    # 1) Intersezione base su feature_limits[1..6]
     feats = union_features(sel)
     for f in feats:
         mins = [feature_limits[i][f][0] for i in sel if f in feature_limits[i]]
@@ -1965,10 +1967,66 @@ def compute_agg_limits(sel):
             continue
         vmin, vmax = max(mins), min(maxs)
         if vmin > vmax:
-            st.error(f"Nessun valore possibile per {f}: intervalli incompatibili {[(i,feature_limits[i][f]) for i in sel if f in feature_limits[i]]}")
+            st.error(
+                f"Nessun valore possibile per {f}: "
+                f"intervalli incompatibili "
+                f"{[(i, feature_limits[i][f]) for i in sel if f in feature_limits[i]]}"
+            )
             st.stop()
         agg[f] = (vmin, vmax)
+
+    # 2) Se combinato (>1 intervento), rafforza con feature_limits[7]
+    if len(sel) > 1:
+        for f, (mn7, mx7) in feature_limits[7].items():
+            if f in agg:
+                vmin, vmax = agg[f]
+                agg[f] = (max(vmin, mn7), min(vmax, mx7))
+            else:
+                agg[f] = (mn7, mx7)
+            vmin2, vmax2 = agg[f]
+            if vmin2 > vmax2:
+                st.error(
+                    f"Nessun valore possibile per {f} "
+                    f"dopo unione con feature_limits[7]: "
+                    f"[{vmin2:.2f}, {vmax2:.2f}]"
+                )
+                st.stop()
+
+        # 3) Poi rafforza ancora con feature_limits_en[7]
+        for f, (mn7e, mx7e) in feature_limits_en[7].items():
+            if f in agg:
+                vmin, vmax = agg[f]
+                agg[f] = (max(vmin, mn7e), min(vmax, mx7e))
+            else:
+                agg[f] = (mn7e, mx7e)
+            vmin3, vmax3 = agg[f]
+            if vmin3 > vmax3:
+                st.error(
+                    f"Nessun valore possibile per {f} "
+                    f"dopo unione con feature_limits_en[7]: "
+                    f"[{vmin3:.2f}, {vmax3:.2f}]"
+                )
+                st.stop()
+
     return agg
+
+
+
+# def compute_agg_limits(sel):
+#     """Restituisce {feature: (min_agg, max_agg)} per l’intersezione di tutti i modelli in sel."""
+#     agg = {}
+#     feats = union_features(sel)
+#     for f in feats:
+#         mins = [feature_limits[i][f][0] for i in sel if f in feature_limits[i]]
+#         maxs = [feature_limits[i][f][1] for i in sel if f in feature_limits[i]]
+#         if not mins or not maxs:
+#             continue
+#         vmin, vmax = max(mins), min(maxs)
+#         if vmin > vmax:
+#             st.error(f"Nessun valore possibile per {f}: intervalli incompatibili {[(i,feature_limits[i][f]) for i in sel if f in feature_limits[i]]}")
+#             st.stop()
+#         agg[f] = (vmin, vmax)
+#     return agg
 
 #SIDEBAR
 
