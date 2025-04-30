@@ -2304,6 +2304,25 @@ if sel:
                 for i in sel
             }
 
+            # ── 4) Controllo finale sui singoli interventi ────────────
+            for i in sel:
+                # EP_GL_NREN predicted non deve eccedere quello iniziale
+                if nm_sing[i] > d["EP_GL_NREN"]:
+                    st.error(
+                        f"Predicted EP_GL_NREN for intervention {i} "
+                        f"({nm_sing[i]:.2f}) exceeds initial value "
+                        f"({d['EP_GL_NREN']:.2f})."
+                    )
+                    st.stop()
+                # classe energetica predicted non deve essere peggiore
+                if ds_sing[i] > d["CLASSE_ENERGETICA"]:
+                    st.error(
+                        f"Predicted energy class for intervention {i} "
+                        f"({ds_sing[i] + 1}) is worse than initial "
+                        f"({d['CLASSE_ENERGETICA'] + 1})."
+                    )
+                    st.stop()
+
             # 4) predizione NM combinato (regr. XGBoost_7)
             if len(sel) > 1:
             # base “utente” per il modello 7
@@ -2355,6 +2374,20 @@ if sel:
                 ds7 = int(models_en[7].predict(df7)[0])
             else:
                 ds7 = next(iter(ds_sing.values()))
+
+            if nm7 > d["EP_GL_NREN"]:
+                st.error(
+                    f"Predicted combined EP_GL_NREN ({nm7:.2f}) exceeds "
+                    f"initial ({d['EP_GL_NREN']:.2f})."
+                )
+                st.stop()
+            if ds7 > d["CLASSE_ENERGETICA"]:
+                st.error(
+                    f"Predicted combined energy class ({ds7 + 1}) is worse "
+                    f"than initial ({d['CLASSE_ENERGETICA'] + 1})."
+                )
+                st.stop()
+
 
                 # 6) Rendering dei risultati
             tabs = st.tabs(
