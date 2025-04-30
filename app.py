@@ -2125,19 +2125,9 @@ with c1:
     - E.1(3): Other residential buildings (e.g., student or worker residences)
 
     ⚠️ Make sure your building meets **all** of these criteria before proceeding.
-
-    Fill in the fields below to estimate the impact of an energy-efficiency intervention on the building.
     """)
-    
-    with st.expander("🔥 Heatmap Classe"):
-        html_file = os.path.join(os.path.dirname(__file__), "static", "Heatmap_CLASSE.html")
-        if os.path.exists(html_file):
-            with open(html_file, "r", encoding="utf-8") as f:
-                components.html(f.read(), height=500, scrolling=True)
-        else:
-            st.error(f"File non trovato: {html_file}")
 
-    with st.expander("🌡️ Heatmap EP_GL_NREN"):
+    with st.expander("EP_GL_NREN 1% Sample Heatmap"):
         html_file = os.path.join(os.path.dirname(__file__), "static", "Heatmap_EP_GL_NREN.html")
         if os.path.exists(html_file):
             with open(html_file, "r", encoding="utf-8") as f:
@@ -2145,6 +2135,18 @@ with c1:
         else:
             st.error(f"File non trovato: {html_file}")
 
+    with st.expander("Energy Class 1% Sample Heatmap"):
+        html_file = os.path.join(os.path.dirname(__file__), "static", "Heatmap_CLASSE.html")
+        if os.path.exists(html_file):
+            with open(html_file, "r", encoding="utf-8") as f:
+                components.html(f.read(), height=500, scrolling=True)
+        else:
+            st.error(f"File non trovato: {html_file}")
+
+    st.markdown("""
+    Fill in the fields below to estimate the impact of an energy-efficiency intervention on the building.
+    """)
+                
 with c2:
     with st.expander("🔳 QR Code"):
         buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/").save(buf)
