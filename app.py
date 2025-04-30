@@ -1766,12 +1766,18 @@
 #         except Exception as e:
 #             st.error(f"Error: {e}")
 
-#UNDICESIMA VERSIONE: con classe 7 e classe raggiungibile
+
+
+##########################################################################################################################################################
+
+
+
+###UNDICESIMA VERSIONE: con classe 7 e classe raggiungibile
+
+#[1] Imports and Page Configuration
 
 import streamlit as st, qrcode, io, os, pickle
 import pandas as pd
-
-#CONFIGURA PAGINA
 
 st.set_page_config(
      page_title="ENERGY EFFICIENCY TOOL", 
@@ -1779,7 +1785,7 @@ st.set_page_config(
      initial_sidebar_state="collapsed"
 )
 
-#CONFIGURA CARATTERE MAE
+#[2] Custom CSS Styling
 
 st.markdown(
     """
@@ -1793,11 +1799,13 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# IMPORT MODELLI 
+#[3] Model Loading 
 
 MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
 models     = {i: pickle.load(open(os.path.join(MODELS_DIR,f"XGBoost_{i}.pkl"),"rb"))  for i in range(1,8)}
 models_en  = {i: pickle.load(open(os.path.join(MODELS_DIR,f"XGBoost_EN_{i}.pkl"),"rb"))for i in range(1,8)}
+
+#[4] Feature and Metrics Definitions
 
 feature_sets = {
     1:['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','RAPPORTO_SV',
@@ -1898,12 +1906,12 @@ feature_limits = {
     7:  {'CLASSE_ENERGETICA': (1.00, 10.00),
         'EP_GL_NREN': (1.84, 579.58),
         'EP_GL_REN': (0.00, 152.29),
-        'NM_EP_GL_NREN_RAGGIUNG_1': (0.00, 214368266211002.00),
-        'NM_EP_GL_NREN_RAGGIUNG_2': (0.00, 354722637931811.00),
-        'NM_EP_GL_NREN_RAGGIUNG_3': (0.00, 3854.84),
-        'NM_EP_GL_NREN_RAGGIUNG_4': (0.00, 1241.22),
+        'NM_EP_GL_NREN_RAGGIUNG_1': (0.00, 565.66),
+        'NM_EP_GL_NREN_RAGGIUNG_2': (0.00, 569.74),
+        'NM_EP_GL_NREN_RAGGIUNG_3': (0.00, 569.87),
+        'NM_EP_GL_NREN_RAGGIUNG_4': (0.00, 561.46),
         'NM_EP_GL_NREN_RAGGIUNG_5': (0.00, 570.21),
-        'NM_EP_GL_NREN_RAGGIUNG_6': (0.00, 944.33),
+        'NM_EP_GL_NREN_RAGGIUNG_6': (0.00, 567.96),
         'SUPERFICIE_DISPERDENTE': (4.30, 447.28),
         'RAPPORTO_SV': (0.01, 1.56),
         'EP_H_ND': (0.06, 345.62),
@@ -2128,8 +2136,8 @@ if sel:
             )
         if "RAPPORTO_SV" in agg_limits:
             d["RAPPORTO_SV"] = num(
-                "S/V ratio",
-                "Ratio between heat‑loss surface and heated volume",
+                "S/V ratio (1/m)",
+                "Ratio between heat‑loss surface and heated volume (1/m)",
                 feat="RAPPORTO_SV"
             )
 
@@ -2200,7 +2208,7 @@ if sel:
                 ep0 = d["EP_GL_NREN"]
                 if not (emin <= ep0 <= emax):
                     st.error(
-                        f"EP_GL_NREN = {ep0:.2f} fuori dal range "
+                        f"EP_GL_NREN = {ep0:.2f} out of range "
                         f"[{emin:.2f}, {emax:.2f}] richiesto da EN_{i}"
                     )
                     st.stop()
@@ -2211,7 +2219,7 @@ if sel:
                 nm_val = nm_sing[i]
                 if not (nmin <= nm_val <= nmax):
                     st.error(
-                        f"{fnm} = {nm_val:.2f} fuori dal range "
+                        f"{fnm} = {nm_val:.2f} out of range "
                         f"[{nmin:.2f}, {nmax:.2f}] richiesto da EN_{i}"
                     )
                     st.stop()
@@ -2252,8 +2260,7 @@ if sel:
                     **comb_base,
                     **nm_input2,
                     **ds_input,
-                    "NM_EP_GL_NREN_RAGGIUNG_7": nm7,
-                    "DS_CLASSE_RAGGIUNGIBILE_7": 0  # placeholder
+                    "NM_EP_GL_NREN_RAGGIUNG_7": nm7
                 }
 
                 # 5a) verifica tutti gli input EN_7
@@ -2264,7 +2271,7 @@ if sel:
                     if not (mn <= val <= mx):
                         st.error(
                             f"Input `{feat}` per EN_7 = {val:.2f} "
-                            f"fuori dal range [{mn:.2f}, {mx:.2f}]."
+                            f"out of [{mn:.2f}, {mx:.2f}]."
                         )
                         st.stop()
 
