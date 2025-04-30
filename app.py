@@ -1404,7 +1404,369 @@
 #         except Exception as e:
 #             st.error(f"Errore durante la predizione: {e}")
 
-#DECIMA VERSIONE: con classe 7 e classe raggiungibile
+# #DECIMA VERSIONE: con classe 7 e classe raggiungibile
+
+# import streamlit as st, qrcode, io, os, pickle
+# import pandas as pd
+
+# #CONFIGURA PAGINA
+
+# st.set_page_config(
+#      page_title="ENERGY EFFICIENCY TOOL", 
+#      layout="wide",
+#      initial_sidebar_state="collapsed"
+# )
+
+# #CONFIGURA CARATTERE MAE
+
+# st.markdown(
+#     """
+#     <style>
+#     /* ridimensiona SOLO i metric che stanno nella sidebar */
+#     section[data-testid="stSidebar"] div[data-testid="stMetricValue"] {
+#         font-size: 0.9rem;     /* valore principale  (default ≃1.25rem) */
+#     }
+#     </style>
+#     """,
+#     unsafe_allow_html=True
+# )
+
+# # IMPORT MODELLI 
+
+# MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
+# models     = {i: pickle.load(open(os.path.join(MODELS_DIR,f"XGBoost_{i}.pkl"),"rb"))  for i in range(1,8)}
+# models_en  = {i: pickle.load(open(os.path.join(MODELS_DIR,f"XGBoost_EN_{i}.pkl"),"rb"))for i in range(1,8)}
+
+# feature_sets = {
+#     1:['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','RAPPORTO_SV',
+#        'SUPERFICIE_DISPERDENTE','Y_IE','VOLUME_LORDO_RISCALDATO'],
+#     2:['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','RAPPORTO_SV',
+#        'SUPERFICIE_DISPERDENTE','Y_IE'],
+#     3:['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','Y_IE',
+#        'RAPPORTO_SV','SUPERFICIE_DISPERDENTE'],
+#     4:['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','Y_IE',
+#        'RAPPORTO_SV','EP_GL_REN','SUPERFICIE_DISPERDENTE'],
+#     5:['EP_GL_NREN','EP_H_ND','RAPPORTO_SV','CLASSE_ENERGETICA',
+#        'EP_GL_REN','VOLUME_LORDO_RISCALDATO','Y_IE',
+#        'SUPERFICIE_DISPERDENTE','SUPERF_UTILE_RISCALDATA',
+#        'A_SOL_EST_A_SUP_UTILE','VOLUME_LORDO_RAFFRESCATO',
+#        'SUPERF_UTILE_RAFFRESCATA'],
+#     6:['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','EP_GL_REN',
+#        'Y_IE','RAPPORTO_SV','SUPERFICIE_DISPERDENTE',
+#        'SUPERF_UTILE_RISCALDATA','VOLUME_LORDO_RISCALDATO',
+#        'A_SOL_EST_A_SUP_UTILE'],
+#     7:['CLASSE_ENERGETICA','EP_GL_NREN','EP_GL_REN',
+#        'NM_EP_GL_NREN_RAGGIUNG_1','DS_CLASSE_RAGGIUNGIBILE_1',
+#        'NM_EP_GL_NREN_RAGGIUNG_2','DS_CLASSE_RAGGIUNGIBILE_2',
+#        'NM_EP_GL_NREN_RAGGIUNG_3','DS_CLASSE_RAGGIUNGIBILE_3',
+#        'NM_EP_GL_NREN_RAGGIUNG_4','DS_CLASSE_RAGGIUNGIBILE_4',
+#        'NM_EP_GL_NREN_RAGGIUNG_5','DS_CLASSE_RAGGIUNGIBILE_5',
+#        'NM_EP_GL_NREN_RAGGIUNG_6','DS_CLASSE_RAGGIUNGIBILE_6',
+#        'NM_EP_GL_NREN_RAGGIUNG_7','DS_CLASSE_RAGGIUNGIBILE_7',
+#        'SUPERFICIE_DISPERDENTE','RAPPORTO_SV','EP_H_ND','Y_IE']
+# }
+# mae_dict={1:28.25,
+#           2:10.03,
+#           3:18.83,
+#           4:17.08,
+#           5:13.06,
+#           6:10.17,
+#           7:5.55
+# }
+# accuracy_en={1:69.04,
+#              2:73.25,
+#              3:75.80,
+#              4:64.48,
+#              5:69.47,
+#              6:78.05,
+#              7:88.30
+# }
+
+# #SIDEBAR
+
+# # —–—  dizionario MAE già definito altrove  —–—
+# # mae_dict = {1: 28.25, 2: 10.03, ... , 7: 5.55}
+
+# # percorso dove tieni le immagini (mae_1.png, mae_2.png, …)
+# IMG_DIR = "static"          # cambialo se necessario
+# IMG_PATTERN_1 = "mae_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
+# IMG_PATTERN_2 = "acc_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
+# IMG_PATTERN_3 = "sp_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
+# IMG_PATTERN_4 = "cm_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
+# # --------------------------------------------------------------------
+# with st.sidebar:
+#     with st.expander("📊 Training loss trend-EP_GL_NREN", expanded=True):
+#         # etichette tab: "1", "2", …, "7"
+#         tabs = st.tabs([str(i) for i in range(1, 8)])
+
+#         # ciclo sincrono tab ↔ intervento
+#         for i, tab in enumerate(tabs, start=1):
+#             with tab:
+#                 # ➊  metrica numerica
+#                 st.metric(
+#                     label=f"MAE Intervention {i}",
+#                     value=f"± {mae_dict[i]:.2f} kWh/m²·year",
+#                 )
+
+#                 # ➋  immagine relativa
+#                 img_path = os.path.join(IMG_DIR, IMG_PATTERN_1.format(i=i))
+#                 if os.path.exists(img_path):
+#                     st.image(img_path, use_container_width=True)
+#                 else:
+#                     st.info(f"Add image: {img_path}")
+
+#                 img_path = os.path.join(IMG_DIR, IMG_PATTERN_3.format(i=i))
+#                 if os.path.exists(img_path):
+#                     st.image(img_path, use_container_width=True)
+#                 else:
+#                     st.info(f"Add image: {img_path}")
+
+#     with st.expander("📊 training loss trend-Energy class", expanded=True):
+#         # etichette tab: "1", "2", …, "7"
+#         tabs = st.tabs([str(i) for i in range(1, 8)])
+
+#         # ciclo sincrono tab ↔ intervento
+#         for i, tab in enumerate(tabs, start=1):
+#             with tab:
+#                 # ➊  metrica numerica
+#                 st.metric(
+#                     label=f"Accuracy Intervention {i}",
+#                     value=f"{accuracy_en[i]:.2f} %",
+#                 )
+
+#                 # ➋  immagine relativa
+#                 img_path = os.path.join(IMG_DIR, IMG_PATTERN_2.format(i=i))
+#                 if os.path.exists(img_path):
+#                     st.image(img_path, use_container_width=True)
+#                 else:
+#                     st.info(f"Add image: {img_path}")
+                
+#                 img_path = os.path.join(IMG_DIR, IMG_PATTERN_4.format(i=i))
+#                 if os.path.exists(img_path):
+#                     st.image(img_path, use_container_width=True)
+#                 else:
+#                     st.info(f"Add image: {img_path}")
+
+# #DEF FUNCTIONS
+
+# def pred_NM(data,cat):          # NM_EP_GL_NREN_RAGGIUNG_{cat}
+#     df=pd.DataFrame([{k:data[k] for k in feature_sets[cat] if k in data}])
+#     return float(models[cat].predict(df)[0])
+
+# def pred_DS(nm,ep0,cls0,cat):   # DS_CLASSE_RAGGIUNGIBILE_{cat}
+#     col=f"NM_EP_GL_NREN_RAGGIUNG_{cat}"
+#     df=pd.DataFrame([{col:nm,"CLASSE_ENERGETICA":cls0,"EP_GL_NREN":ep0}])
+#     df=df[models_en[cat].feature_names_in_]
+#     return int(models_en[cat].predict(df)[0])
+
+# def union_features(selected):
+#     base=set()
+#     for i in selected: base|=set(feature_sets[i])
+#     # feature "utente" del 7 (senza colonne NM/DS)
+#     base|={f for f in feature_sets[7] if not f.startswith(("NM_","DS_"))}
+#     return sorted(base)
+
+# #UI
+
+# c1,c2=st.columns([4,1])
+# with c1: 
+#     st.title("ENERGY EFFICIENCY TOOL")
+#     st.markdown("""
+#     **⚠️ This tool is valid only for buildings located in the Lombardy region, within climate zone E, belonging to category E.1, with a gross floor area below 700 m² and with a gross volume below 2450 m³ :**
+#     - E.1(1): Buildings used as permanent residences (e.g., apartment buildings)
+#     - E.1(2): Buildings used as non-permanent residences (e.g., holiday homes)
+#     - E.1(3): Other residential buildings (e.g., student or worker residences)
+
+#     ⚠️ Make sure your building meets **all** of these criteria before proceeding.
+
+#     Fill in the fields below to estimate the impact of an energy-efficiency intervention on the building.
+#     """)
+
+# with c2:
+#     with st.expander("🔳 QR Code"):
+#         buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/").save(buf)
+#         st.image(buf.getvalue(), use_container_width=True)
+
+# if "sel" not in st.session_state: st.session_state.sel=[]
+
+# with st.form("pick"):
+#     st.subheader("Select intervention")
+#     tmp=[]
+#     lbl={1:"1 - Opaque envelope",2:"2 - Transparent envelope",3:"3 - Heating system",
+#          4:"4 - Cooling system",5:"5 - Renewable sources",6:"6 - Other intervention"}
+#     for i,t in lbl.items():
+#         if st.checkbox(t,value=(i in st.session_state.sel)): tmp.append(i)
+#     if st.form_submit_button("Confirm"): st.session_state.sel=tmp
+
+# sel = st.session_state.sel
+# if sel:
+#     req = union_features(sel)
+
+#     with st.form("bld"):
+#         st.subheader("Building data")
+#         d = {}
+
+#         # helper -------------------------------------------------------------
+#         def num(label, hint):
+#             return st.number_input(label, min_value=0.0, help=hint)
+
+#         # --------------------------------------------------------------------
+#         if "EP_GL_NREN" in req:
+#             d["EP_GL_NREN"] = num(
+#                 "EP_GL_NREN (kWh/m²·year)",
+#                 "Non‑renewable global energy performance index (kWh/m²·year)",
+#             )
+
+#         if "EP_GL_REN" in req:
+#             d["EP_GL_REN"] = num(
+#                 "EP_GL_REN (kWh/m²·year)",
+#                 "Renewable global energy performance index (kWh/m²·year)",
+#             )
+
+#         if "EP_H_ND" in req:
+#             d["EP_H_ND"] = num(
+#                 "EP_H_ND (kWh/m²·year)",
+#                 "Thermal energy demand for heating (kWh/m²·year)",
+#             )
+
+#         if "CLASSE_ENERGETICA" in req:
+#             d["CLASSE_ENERGETICA"] = (
+#                 st.selectbox(
+#                     "Energy class (1=A4 … 10=G)",
+#                     range(1, 11),
+#                     help="Current energy class of the building (A4→1 … G→10)",
+#                 )
+#                 - 1  # 0‑based per il modello
+#             )
+
+#         if "RAPPORTO_SV" in req:
+#             d["RAPPORTO_SV"] = num(
+#                 "S/V ratio",
+#                 "Ratio between heat‑loss surface and heated volume",
+#             )
+
+#         if "SUPERFICIE_DISPERDENTE" in req:
+#             d["SUPERFICIE_DISPERDENTE"] = num(
+#                 "Dispersing surface (m²)",
+#                 "Total surface area of the energy‑dispersing envelope (m²)",
+#             )
+
+#         if "Y_IE" in req:
+#             d["Y_IE"] = num(
+#                 "Y_IE (W/m²·K)",
+#                 "Periodic thermal transmittance (W/m²·K)",
+#             )
+
+#         if "VOLUME_LORDO_RISCALDATO" in req:
+#             d["VOLUME_LORDO_RISCALDATO"] = num(
+#                 "Gross heated volume (m³)",
+#                 "Gross heated volume (m³)",
+#             )
+
+#         if "SUPERF_UTILE_RISCALDATA" in req:
+#             d["SUPERF_UTILE_RISCALDATA"] = num(
+#                 "Heated useful area (m²)",
+#                 "Heated useful floor area of the building (m²)",
+#             )
+
+#         if "A_SOL_EST_A_SUP_UTILE" in req:
+#             d["A_SOL_EST_A_SUP_UTILE"] = num(
+#                 "Summer equivalent solar area/unit of useful surface",
+#                 "Summer equivalent solar area per unit of useful surface",
+#             )
+
+#         if "VOLUME_LORDO_RAFFRESCATO" in req:
+#             d["VOLUME_LORDO_RAFFRESCATO"] = num(
+#                 "Gross cooled volume (m³)",
+#                 "Gross cooled volume (m³)",
+#             )
+
+#         if "SUPERF_UTILE_RAFFRESCATA" in req:
+#             d["SUPERF_UTILE_RAFFRESCATA"] = num(
+#                 "Cooled useful area (m²)",
+#                 "Cooled useful floor area of the building (m²)",
+#             )
+
+#         # pulsante di sottomissione ------------------------------------------
+#         go = st.form_submit_button("Run calculation")
+
+#     if go:
+#         if {"EP_GL_NREN","CLASSE_ENERGETICA"}-d.keys():
+#             st.error("EP_GL_NREN and Energy class are required."); st.stop()
+
+#         try:
+#             # 1) predizioni singole NM + DS
+#             nm_sing={i:pred_NM(d,i) for i in sel}
+#             ds_sing={i:pred_DS(nm_sing[i],d["EP_GL_NREN"],d["CLASSE_ENERGETICA"],i) for i in sel}
+
+#             # 2) predizione NM combinato
+#             if len(sel)>1:
+#                 nm_input={f"NM_EP_GL_NREN_RAGGIUNG_{k}":nm_sing.get(k,0.0) for k in range(1,7)}
+#                 comb_base={f:d.get(f,0.0) for f in feature_sets[7] if not f.startswith(("NM_","DS_"))}
+#                 nm7=pred_NM({**comb_base,**nm_input},7)
+#             else:
+#                 nm7=list(nm_sing.values())[0]
+
+#             # 3) predizione DS combinato
+#             if len(sel)>1:
+#                 ds_input={f"DS_CLASSE_RAGGIUNGIBILE_{k}":ds_sing.get(k,0)   for k in range(1,7)}
+#                 nm_input2={f"NM_EP_GL_NREN_RAGGIUNG_{k}":nm_sing.get(k,0.0) for k in range(1,7)}
+#                 full={**comb_base,
+#                       **nm_input2,**ds_input,
+#                       "NM_EP_GL_NREN_RAGGIUNG_7":nm7,
+#                       "DS_CLASSE_RAGGIUNGIBILE_7":0}  # placeholder
+#                 # riordino secondo il modello
+#                 f_order=models_en[7].feature_names_in_
+#                 ds7=int(models_en[7].predict(pd.DataFrame([ {f:full.get(f,0.0) for f in f_order} ]))[0])
+#             else:
+#                 ds7=list(ds_sing.values())[0]
+
+#             # ---------- OUTPUT ---------- #
+#         #     if len(sel)>1:
+#         #         st.subheader("Single results")
+#         #         for i in sel:
+#         #             st.success(f"**Intervention {i}** | EP_GL_NREN_achievable: {nm_sing[i]:.2f} kWh/m²·year, Energy class achievable: {ds_sing[i]+1}")
+
+#         #     mae=mae_dict[7 if len(sel)>1 else sel[0]]
+#         #     st.subheader("Combined result" if len(sel)>1 else "Result")
+#         #     st.success(f"EP_GL_NREN_achievable: **{nm7:.2f}** kWh/m²·year, Energy class achievable: {ds7+1})")
+
+#         # except Exception as e:
+#         #     st.error(f"Error: {e}")
+        
+#             tabs = st.tabs(
+#                 [f"Intervention {i}" for i in sel] +
+#                 (["Combined"] if len(sel) > 1 else [])
+#             )
+
+#             # ➊ singoli interventi
+#             for idx, i in enumerate(sel):
+#                 with tabs[idx]:
+#                     st.metric(
+#                         "EP_GL_NREN achievable (kWh/m²·year)",
+#                         f"{nm_sing[i]:.2f}"
+#                     )
+#                     st.metric(
+#                         "Energy class achievable",
+#                         f"{ds_sing[i] + 1}"
+#                     )
+
+#             # ➋ risultato combinato
+#             if len(sel) > 1:
+#                 with tabs[-1]:
+#                     st.metric(
+#                         "EP_GL_NREN achievable (kWh/m²·year)",
+#                         f"{nm7:.2f}"
+#                     )
+#                     st.metric(
+#                         "Energy class achievable",
+#                         f"{ds7 + 1}"
+#                     )
+
+#         except Exception as e:
+#             st.error(f"Error: {e}")
+
+#UNDICESIMA VERSIONE: con classe 7 e classe raggiungibile
 
 import streamlit as st, qrcode, io, os, pickle
 import pandas as pd
@@ -1481,6 +1843,124 @@ accuracy_en={1:69.04,
              6:78.05,
              7:88.30
 }
+
+#FEATURES LIMITS
+
+feature_limits = {
+    1: {'EP_GL_NREN': (0.66, 579.51), 
+        'EP_H_ND': ( 0.01, 345.62), 
+        'Y_IE': (0.00, 164.42),
+        'RAPPORTO_SV': ( 0.00, 1.56), 
+        'SUPERFICIE_DISPERDENTE': ( 0.01, 447.28),
+        'VOLUME_LORDO_RISCALDATO': (5.83, 2450.00), 
+        'CLASSE_ENERGETICA': (1.00, 10.00)},
+    2: {'EP_GL_NREN':( 1.11, 579.62),
+        'EP_H_ND':(0.02, 345.62),
+        'CLASSE_ENERGETICA':(1.00, 10.00),
+        'RAPPORTO_SV':(0.01, 1.55),
+        'SUPERFICIE_DISPERDENTE':(3.24, 447.28),
+        'Y_IE':(0.00, 160.76)},
+    3:  {'EP_GL_NREN': (0.44, 579.57),
+        'EP_H_ND': (0.34, 345.58),
+        'CLASSE_ENERGETICA': (1.00, 10.00),
+        'Y_IE': (0.00, 166.86),
+        'RAPPORTO_SV': (0.00, 1.55),
+        'SUPERFICIE_DISPERDENTE': (0.10, 447.27)},
+    4:  {'EP_GL_NREN': (2.96, 572.57),
+        'EP_H_ND': (1.12, 342.31),
+        'CLASSE_ENERGETICA': (1.00, 10.00),
+        'Y_IE': (0.00, 81.97),
+        'RAPPORTO_SV': (0.03, 1.22),
+        'EP_GL_REN': (0.00, 146.59),
+        'SUPERFICIE_DISPERDENTE': (3.00, 444.68)},
+    5:  {'EP_GL_NREN': (3.65, 579.58),
+        'EP_H_ND': (0.06, 334.75),
+        'RAPPORTO_SV': (0.06, 1.43),
+        'CLASSE_ENERGETICA': (1.00, 10.00),
+        'EP_GL_REN': (0.00, 150.55),
+        'VOLUME_LORDO_RISCALDATO': (24.82, 1030.40),
+        'Y_IE': (0.00, 159.60),
+        'SUPERFICIE_DISPERDENTE': (9.42, 445.81),
+        'SUPERF_UTILE_RISCALDATA': (5.04, 254.46),
+        'A_SOL_EST_A_SUP_UTILE': (0.00, 0.11),
+        'VOLUME_LORDO_RAFFRESCATO': (0.00, 945.39),
+        'SUPERF_UTILE_RAFFRESCATA': (0.00, 254.46)},   
+    6:  {'EP_GL_NREN': (1.83, 578.89),
+        'EP_H_ND': (0.01, 345.20),
+        'CLASSE_ENERGETICA': (1.00, 10.00),
+        'EP_GL_REN': (0.00, 152.21),
+        'Y_IE': (0.00, 124.24),
+        'RAPPORTO_SV': (0.00, 1.56),
+        'SUPERFICIE_DISPERDENTE': (0.08, 447.28),
+        'SUPERF_UTILE_RISCALDATA': (2.62, 408.00),
+        'VOLUME_LORDO_RISCALDATO': (14.02, 1722.55),
+        'A_SOL_EST_A_SUP_UTILE': (0.00, 0.11)}, 
+    7:  {'CLASSE_ENERGETICA': (1.00, 10.00),
+        'EP_GL_NREN': (1.84, 579.58),
+        'EP_GL_REN': (0.00, 152.29),
+        'NM_EP_GL_NREN_RAGGIUNG_1': (0.00, 214368266211002.00),
+        'NM_EP_GL_NREN_RAGGIUNG_2': (0.00, 354722637931811.00),
+        'NM_EP_GL_NREN_RAGGIUNG_3': (0.00, 3854.84),
+        'NM_EP_GL_NREN_RAGGIUNG_4': (0.00, 1241.22),
+        'NM_EP_GL_NREN_RAGGIUNG_5': (0.00, 570.21),
+        'NM_EP_GL_NREN_RAGGIUNG_6': (0.00, 944.33),
+        'SUPERFICIE_DISPERDENTE': (4.30, 447.28),
+        'RAPPORTO_SV': (0.01, 1.56),
+        'EP_H_ND': (0.06, 345.62),
+        'Y_IE': (0.00, 169.62)}   
+        }
+
+feature_limits_en = {
+    1: {'NM_EP_GL_NREN_RAGGIUNG_1': (0.21, 578.48),
+        'EP_GL_NREN': (0.66, 579.51)},
+    2: {'NM_EP_GL_NREN_RAGGIUNG_2': (0.18, 575.55),
+        'EP_GL_NREN': (1.11, 579.62)},
+    3: {'NM_EP_GL_NREN_RAGGIUNG_3': (0.05, 575.28),
+        'EP_GL_NREN': (1.11, 579.57)},
+    4: {'NM_EP_GL_NREN_RAGGIUNG_4': (0.40, 562.92),
+        'EP_GL_NREN': (2.96, 572.57)},
+    5: {'NM_EP_GL_NREN_RAGGIUNG_5': (0.37, 570.21),
+        'EP_GL_NREN': (3.65, 579.58)},
+    6: {'NM_EP_GL_NREN_RAGGIUNG_6': (0.01, 569.23),
+        'EP_GL_NREN': (1.83, 578.89)},
+    7: {'CLASSE_ENERGETICA': (1.00, 10.00),
+        'EP_GL_NREN': (1.84, 579.58),
+        'EP_GL_REN': (0.00, 152.29),
+        'DS_CLASSE_RAGGIUNGIBILE_1': (0.00, 10.00),
+        'NM_EP_GL_NREN_RAGGIUNG_1': (0.00, 214368266211002.00),
+        'DS_CLASSE_RAGGIUNGIBILE_2': (0.00, 10.00),
+        'NM_EP_GL_NREN_RAGGIUNG_2': (0.00, 354722637931811.00),
+        'DS_CLASSE_RAGGIUNGIBILE_3': (0.00, 10.00),
+        'NM_EP_GL_NREN_RAGGIUNG_3': (0.00, 3854.84),
+        'DS_CLASSE_RAGGIUNGIBILE_4': (0.00, 10.00),
+        'NM_EP_GL_NREN_RAGGIUNG_4': (0.00, 1241.22),
+        'DS_CLASSE_RAGGIUNGIBILE_5': (0.00, 10.00),
+        'NM_EP_GL_NREN_RAGGIUNG_5': (0.00, 570.21),
+        'DS_CLASSE_RAGGIUNGIBILE_6': (0.00, 10.00),
+        'NM_EP_GL_NREN_RAGGIUNG_6': (0.00, 944.33),
+        'DS_CLASSE_RAGGIUNGIBILE_7': (1.00, 10.00),
+        'NM_EP_GL_NREN_RAGGIUNG_7': (0.02, 579.33),
+        'SUPERFICIE_DISPERDENTE': (4.30, 447.28),
+        'RAPPORTO_SV': (0.01, 1.56),
+        'EP_H_ND': (0.06, 345.62),
+        'Y_IE': (0.00, 169.62)}
+        }
+
+def compute_agg_limits(sel):
+    """Restituisce {feature: (min_agg, max_agg)} per l’intersezione di tutti i modelli in sel."""
+    agg = {}
+    feats = union_features(sel)
+    for f in feats:
+        mins = [feature_limits[i][f][0] for i in sel if f in feature_limits[i]]
+        maxs = [feature_limits[i][f][1] for i in sel if f in feature_limits[i]]
+        if not mins or not maxs:
+            continue
+        vmin, vmax = max(mins), min(maxs)
+        if vmin > vmax:
+            st.error(f"Nessun valore possibile per {f}: intervalli incompatibili {[(i,feature_limits[i][f]) for i in sel if f in feature_limits[i]]}")
+            st.stop()
+        agg[f] = (vmin, vmax)
+    return agg
 
 #SIDEBAR
 
@@ -1600,91 +2080,106 @@ with st.form("pick"):
 
 sel = st.session_state.sel
 if sel:
-    req = union_features(sel)
+    # 2) Calcolo dei limiti aggregati
+    agg_limits = compute_agg_limits(sel)
 
     with st.form("bld"):
         st.subheader("Building data")
         d = {}
 
-        # helper -------------------------------------------------------------
-        def num(label, hint):
-            return st.number_input(label, min_value=0.0, help=hint)
-
+        def num(label, hint, feat):
+            vmin, vmax = agg_limits.get(feat, (0.0, None))
+            return st.number_input(
+                label, min_value=vmin, max_value=vmax,
+                value=vmin, help=hint
+            )
+        
         # --------------------------------------------------------------------
-        if "EP_GL_NREN" in req:
+        if "EP_GL_NREN" in agg_limits:
             d["EP_GL_NREN"] = num(
                 "EP_GL_NREN (kWh/m²·year)",
                 "Non‑renewable global energy performance index (kWh/m²·year)",
+                feat="EP_GL_NREN"
             )
 
-        if "EP_GL_REN" in req:
+        if "EP_GL_REN" in agg_limits:
             d["EP_GL_REN"] = num(
                 "EP_GL_REN (kWh/m²·year)",
                 "Renewable global energy performance index (kWh/m²·year)",
+                feat="EP_GL_REN"
             )
 
-        if "EP_H_ND" in req:
+        if "EP_H_ND" in agg_limits:
             d["EP_H_ND"] = num(
                 "EP_H_ND (kWh/m²·year)",
                 "Thermal energy demand for heating (kWh/m²·year)",
+                feat="EP_H_ND"
             )
 
-        if "CLASSE_ENERGETICA" in req:
+        if "CLASSE_ENERGETICA" in agg_limits:
+            lo, hi = agg_limits["CLASSE_ENERGETICA"]
             d["CLASSE_ENERGETICA"] = (
                 st.selectbox(
                     "Energy class (1=A4 … 10=G)",
-                    range(1, 11),
-                    help="Current energy class of the building (A4→1 … G→10)",
-                )
-                - 1  # 0‑based per il modello
+                    list(range(int(lo)+1, int(hi)+2)),
+                    index=0,
+                    help="Current energy class of the building"
+                ) - 1
             )
-
-        if "RAPPORTO_SV" in req:
+        if "RAPPORTO_SV" in agg_limits:
             d["RAPPORTO_SV"] = num(
                 "S/V ratio",
                 "Ratio between heat‑loss surface and heated volume",
+                feat="RAPPORTO_SV"
             )
 
-        if "SUPERFICIE_DISPERDENTE" in req:
+        if "SUPERFICIE_DISPERDENTE" in agg_limits:
             d["SUPERFICIE_DISPERDENTE"] = num(
                 "Dispersing surface (m²)",
                 "Total surface area of the energy‑dispersing envelope (m²)",
+                feat="SUPERFICIE_DISPERDENTE"
             )
 
-        if "Y_IE" in req:
+        if "Y_IE" in agg_limits:
             d["Y_IE"] = num(
                 "Y_IE (W/m²·K)",
                 "Periodic thermal transmittance (W/m²·K)",
+                feat="Y_IE"
             )
 
-        if "VOLUME_LORDO_RISCALDATO" in req:
+        if "VOLUME_LORDO_RISCALDATO" in agg_limits:
             d["VOLUME_LORDO_RISCALDATO"] = num(
                 "Gross heated volume (m³)",
                 "Gross heated volume (m³)",
+                feat="VOLUME_LORDO_RISCALDATO"
             )
 
-        if "SUPERF_UTILE_RISCALDATA" in req:
+        if "SUPERF_UTILE_RISCALDATA" in agg_limits:
             d["SUPERF_UTILE_RISCALDATA"] = num(
                 "Heated useful area (m²)",
                 "Heated useful floor area of the building (m²)",
+                feat="SUPERF_UTILE_RISCALDATA"
             )
 
-        if "A_SOL_EST_A_SUP_UTILE" in req:
+        if "A_SOL_EST_A_SUP_UTILE" in agg_limits:
             d["A_SOL_EST_A_SUP_UTILE"] = num(
                 "Summer equivalent solar area/unit of useful surface",
                 "Summer equivalent solar area per unit of useful surface",
+                feat="A_SOL_EST_A_SUP_UTILE"
             )
 
-        if "VOLUME_LORDO_RAFFRESCATO" in req:
+        if "VOLUME_LORDO_RAFFRESCATO" in agg_limits:
             d["VOLUME_LORDO_RAFFRESCATO"] = num(
                 "Gross cooled volume (m³)",
                 "Gross cooled volume (m³)",
+                feat="VOLUME_LORDO_RAFFRESCATO"
             )
 
-        if "SUPERF_UTILE_RAFFRESCATA" in req:
+        if "SUPERF_UTILE_RAFFRESCATA" in agg_limits:
             d["SUPERF_UTILE_RAFFRESCATA"] = num(
                 "Cooled useful area (m²)",
                 "Cooled useful floor area of the building (m²)",
+                feat="SUPERF_UTILE_RAFFRESCATA"
             )
 
         # pulsante di sottomissione ------------------------------------------
@@ -1694,74 +2189,98 @@ if sel:
         if {"EP_GL_NREN","CLASSE_ENERGETICA"}-d.keys():
             st.error("EP_GL_NREN and Energy class are required."); st.stop()
 
-        try:
-            # 1) predizioni singole NM + DS
-            nm_sing={i:pred_NM(d,i) for i in sel}
-            ds_sing={i:pred_DS(nm_sing[i],d["EP_GL_NREN"],d["CLASSE_ENERGETICA"],i) for i in sel}
+try:
+    # 1) predizioni singole NM (regressione)
+    nm_sing = {i: pred_NM(d, i) for i in sel}
 
-            # 2) predizione NM combinato
-            if len(sel)>1:
-                nm_input={f"NM_EP_GL_NREN_RAGGIUNG_{k}":nm_sing.get(k,0.0) for k in range(1,7)}
-                comb_base={f:d.get(f,0.0) for f in feature_sets[7] if not f.startswith(("NM_","DS_"))}
-                nm7=pred_NM({**comb_base,**nm_input},7)
-            else:
-                nm7=list(nm_sing.values())[0]
-
-            # 3) predizione DS combinato
-            if len(sel)>1:
-                ds_input={f"DS_CLASSE_RAGGIUNGIBILE_{k}":ds_sing.get(k,0)   for k in range(1,7)}
-                nm_input2={f"NM_EP_GL_NREN_RAGGIUNG_{k}":nm_sing.get(k,0.0) for k in range(1,7)}
-                full={**comb_base,
-                      **nm_input2,**ds_input,
-                      "NM_EP_GL_NREN_RAGGIUNG_7":nm7,
-                      "DS_CLASSE_RAGGIUNGIBILE_7":0}  # placeholder
-                # riordino secondo il modello
-                f_order=models_en[7].feature_names_in_
-                ds7=int(models_en[7].predict(pd.DataFrame([ {f:full.get(f,0.0) for f in f_order} ]))[0])
-            else:
-                ds7=list(ds_sing.values())[0]
-
-            # ---------- OUTPUT ---------- #
-        #     if len(sel)>1:
-        #         st.subheader("Single results")
-        #         for i in sel:
-        #             st.success(f"**Intervention {i}** | EP_GL_NREN_achievable: {nm_sing[i]:.2f} kWh/m²·year, Energy class achievable: {ds_sing[i]+1}")
-
-        #     mae=mae_dict[7 if len(sel)>1 else sel[0]]
-        #     st.subheader("Combined result" if len(sel)>1 else "Result")
-        #     st.success(f"EP_GL_NREN_achievable: **{nm7:.2f}** kWh/m²·year, Energy class achievable: {ds7+1})")
-
-        # except Exception as e:
-        #     st.error(f"Error: {e}")
-        
-            tabs = st.tabs(
-                [f"Intervention {i}" for i in sel] +
-                (["Combined"] if len(sel) > 1 else [])
+    # 2) verifica pre-EN_1…EN_6
+    for i in sel:
+        # 2a) EP_GL_NREN
+        emin, emax = feature_limits_en[i]['EP_GL_NREN']
+        ep0 = d["EP_GL_NREN"]
+        if not (emin <= ep0 <= emax):
+            st.error(
+                f"EP_GL_NREN = {ep0:.2f} fuori dal range "
+                f"[{emin:.2f}, {emax:.2f}] richiesto da EN_{i}"
             )
+            st.stop()
 
-            # ➊ singoli interventi
-            for idx, i in enumerate(sel):
-                with tabs[idx]:
-                    st.metric(
-                        "EP_GL_NREN achievable (kWh/m²·year)",
-                        f"{nm_sing[i]:.2f}"
-                    )
-                    st.metric(
-                        "Energy class achievable",
-                        f"{ds_sing[i] + 1}"
-                    )
+        # 2b) NM_EP_GL_NREN_RAGGIUNG_{i}
+        fnm = f"NM_EP_GL_NREN_RAGGIUNG_{i}"
+        nmin, nmax = feature_limits_en[i][fnm]
+        nm_val = nm_sing[i]
+        if not (nmin <= nm_val <= nmax):
+            st.error(
+                f"{fnm} = {nm_val:.2f} fuori dal range "
+                f"[{nmin:.2f}, {nmax:.2f}] richiesto da EN_{i}"
+            )
+            st.stop()
 
-            # ➋ risultato combinato
-            if len(sel) > 1:
-                with tabs[-1]:
-                    st.metric(
-                        "EP_GL_NREN achievable (kWh/m²·year)",
-                        f"{nm7:.2f}"
-                    )
-                    st.metric(
-                        "Energy class achievable",
-                        f"{ds7 + 1}"
-                    )
+    # 3) predizioni singole DS (classificazione EN_1…EN_6)
+    ds_sing = {
+        i: pred_DS(nm_sing[i], d["EP_GL_NREN"], d["CLASSE_ENERGETICA"], i)
+        for i in sel
+    }
 
-        except Exception as e:
-            st.error(f"Error: {e}")
+    # 4) predizione NM combinato (regr. XGBoost_7)
+    if len(sel) > 1:
+        nm_input = {
+            f"NM_EP_GL_NREN_RAGGIUNG_{k}": nm_sing.get(k, 0.0)
+            for k in range(1, 7)
+        }
+        comb_base = {
+            f: d.get(f, 0.0)
+            for f in feature_sets[7]
+            if not f.startswith(("NM_", "DS_"))
+        }
+        nm7 = pred_NM({**comb_base, **nm_input}, 7)
+    else:
+        nm7 = list(nm_sing.values())[0]
+
+    # 5) predizione DS combinato (classif. XGBoost_EN_7)
+    if len(sel) > 1:
+        # costruisci il dict completo
+        ds_input = {
+            f"DS_CLASSE_RAGGIUNGIBILE_{k}": ds_sing.get(k, 0)
+            for k in range(1, 7)
+        }
+        nm_input2 = {
+            f"NM_EP_GL_NREN_RAGGIUNG_{k}": nm_sing.get(k, 0.0)
+            for k in range(1, 7)
+        }
+        full = {
+            **comb_base,
+            **nm_input2,
+            **ds_input,
+            "NM_EP_GL_NREN_RAGGIUNG_7": nm7,
+            "DS_CLASSE_RAGGIUNGIBILE_7": 0  # placeholder
+        }
+
+        # 5a) verifica tutti gli input EN_7
+        for feat, (mn, mx) in feature_limits_en[7].items():
+            if feat not in full:
+                continue
+            val = full[feat]
+            if not (mn <= val <= mx):
+                st.error(
+                    f"Input `{feat}` per EN_7 = {val:.2f} "
+                    f"fuori dal range [{mn:.2f}, {mx:.2f}]."
+                )
+                st.stop()
+
+        # 5b) predict EN_7
+        f_order = models_en[7].feature_names_in_
+        df7 = pd.DataFrame([{f: full.get(f, 0.0) for f in f_order}])
+        ds7 = int(models_en[7].predict(df7)[0])
+    else:
+        ds7 = list(ds_sing.values())[0]
+
+    # 6) Rendering dei risultati
+    tabs = st.tabs(
+        [f"Intervention {i}" for i in sel] +
+        (["Combined"] if len(sel) > 1 else [])
+    )
+    # … qui il tuo codice per st.metric() …
+
+except Exception as e:
+    st.error(f"Error: {e}")
