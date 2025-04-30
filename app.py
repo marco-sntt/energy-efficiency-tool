@@ -2155,6 +2155,11 @@ if sel:
 
         def num(label, hint, feat):
             vmin, vmax = agg_limits.get(feat, (0.0, None))
+            full_hint = (
+                f"{hint} (min: {vmin:.2f}, max: {vmax:.2f})"
+                if vmax is not None else
+                hint
+            )
             return st.number_input(
                 label, min_value=vmin, max_value=vmax,
                 value=vmin, help=hint
