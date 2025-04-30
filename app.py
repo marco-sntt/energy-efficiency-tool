@@ -1491,9 +1491,11 @@ accuracy_en={1:69.04,
 IMG_DIR = "static"          # cambialo se necessario
 IMG_PATTERN_1 = "mae_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
 IMG_PATTERN_2 = "acc_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
+IMG_PATTERN_3 = "sp_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
+IMG_PATTERN_4 = "cm_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
 # --------------------------------------------------------------------
 with st.sidebar:
-    with st.expander("📊 MAE-EP_GL_NREN", expanded=True):
+    with st.expander("📊 Training loss trend-EP_GL_NREN", expanded=True):
         # etichette tab: "1", "2", …, "7"
         tabs = st.tabs([str(i) for i in range(1, 8)])
 
@@ -1512,11 +1514,14 @@ with st.sidebar:
                     st.image(img_path, use_container_width=True)
                 else:
                     st.info(f"Add image: {img_path}")
-                    # oppure, se preferisci l’upload on‑the‑fly:
-                    # img_file = st.file_uploader("Upload chart", type=["png","jpg"])
-                    # if img_file: st.image(img_file, use_container_width=True)
 
-    with st.expander("📊 Accuracy-Energy class", expanded=True):
+                img_path = os.path.join(IMG_DIR, IMG_PATTERN_3.format(i=i))
+                if os.path.exists(img_path):
+                    st.image(img_path, use_container_width=True)
+                else:
+                    st.info(f"Add image: {img_path}")
+
+    with st.expander("📊 training loss trend-Energy class", expanded=True):
         # etichette tab: "1", "2", …, "7"
         tabs = st.tabs([str(i) for i in range(1, 8)])
 
@@ -1535,9 +1540,12 @@ with st.sidebar:
                     st.image(img_path, use_container_width=True)
                 else:
                     st.info(f"Add image: {img_path}")
-                    # oppure, se preferisci l’upload on‑the‑fly:
-                    # img_file = st.file_uploader("Upload chart", type=["png","jpg"])
-                    # if img_file: st.image(img_file, use_container_width=True)
+                
+                img_path = os.path.join(IMG_DIR, IMG_PATTERN_4.format(i=i))
+                if os.path.exists(img_path):
+                    st.image(img_path, use_container_width=True)
+                else:
+                    st.info(f"Add image: {img_path}")
 
 #DEF FUNCTIONS
 
@@ -1564,7 +1572,7 @@ c1,c2=st.columns([4,1])
 with c1: 
     st.title("ENERGY EFFICIENCY TOOL")
     st.markdown("""
-    **⚠️ This tool is valid only for buildings located in the Lombardy region, within climate zone E, belonging to category E.1, and with a gross floor area below 700 m²:**
+    **⚠️ This tool is valid only for buildings located in the Lombardy region, within climate zone E, belonging to category E.1, with a gross floor area below 700 m² and with a gross volume below 2450 m³ :**
     - E.1(1): Buildings used as permanent residences (e.g., apartment buildings)
     - E.1(2): Buildings used as non-permanent residences (e.g., holiday homes)
     - E.1(3): Other residential buildings (e.g., student or worker residences)
