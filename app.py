@@ -2128,12 +2128,7 @@ with c1:
 
     Fill in the fields below to estimate the impact of an energy-efficiency intervention on the building.
     """)
-
-with c2:
-    with st.expander("🔳 QR Code"):
-        buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/").save(buf)
-        st.image(buf.getvalue(), use_container_width=True
-        )
+    
     with st.expander("🔥 Heatmap Classe"):
         html_file = os.path.join(os.path.dirname(__file__), "static", "Heatmap_CLASSE.html")
         if os.path.exists(html_file):
@@ -2149,6 +2144,12 @@ with c2:
                 components.html(f.read(), height=500, scrolling=True)
         else:
             st.error(f"File non trovato: {html_file}")
+
+with c2:
+    with st.expander("🔳 QR Code"):
+        buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/").save(buf)
+        st.image(buf.getvalue(), use_container_width=True
+        )
 
 if "sel" not in st.session_state: st.session_state.sel=[]
 
