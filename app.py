@@ -2125,6 +2125,9 @@ with c1:
     - E.1(3): Other residential buildings (e.g., student or worker residences)
 
     ⚠️ Make sure your building meets **all** of these criteria before proceeding.
+    
+    Visualization of the datasets used     
+
     """)
 
     with st.expander("EP_GL_NREN 1% Sample Heatmap"):
