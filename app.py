@@ -2257,6 +2257,17 @@ if sel:
         go = st.form_submit_button("Run calculation")
 
     if go:
+        # VALIDAZIONE GENERICA: blocca tutto se un input è fuori dai limiti
+        for feat, val in d.items():
+            if feat in agg_limits:
+                vmin, vmax = agg_limits[feat]
+                if not (vmin <= val <= vmax):
+                    st.error(
+                        f"Valore `{feat}` = {val:.2f} fuori range "
+                        f"[{vmin:.2f}, {vmax:.2f}]. Impossibile calcolare."
+                    )
+                    st.stop()
+
         if {"EP_GL_NREN","CLASSE_ENERGETICA"}-d.keys():
             st.error("EP_GL_NREN and Energy class are required."); st.stop()
 
