@@ -2134,26 +2134,21 @@ with c2:
         buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/").save(buf)
         st.image(buf.getvalue(), use_container_width=True
         )
-
-        # Heatmap Classe
     with st.expander("🔥 Heatmap Classe"):
-        with open("Heatmap_CLASSE.html", "r", encoding="utf-8") as f:
-            html_classe = f.read()
-        components.html(
-            html_classe,
-            height=500,
-            scrolling=True
-        )
+        html_file = os.path.join(os.path.dirname(__file__), "static", "Heatmap_CLASSE.html")
+        if os.path.exists(html_file):
+            with open(html_file, "r", encoding="utf-8") as f:
+                components.html(f.read(), height=500, scrolling=True)
+        else:
+            st.error(f"File non trovato: {html_file}")
 
-        # Heatmap EP_GL_NREN
     with st.expander("🌡️ Heatmap EP_GL_NREN"):
-        with open("Heatmap_EP_GL_NRE N.html", "r", encoding="utf-8") as f:
-            html_ep = f.read()
-        components.html(
-            html_ep,
-            height=500,
-            scrolling=True
-        )
+        html_file = os.path.join(os.path.dirname(__file__), "static", "Heatmap_EP_GL_NREN.html")
+        if os.path.exists(html_file):
+            with open(html_file, "r", encoding="utf-8") as f:
+                components.html(f.read(), height=500, scrolling=True)
+        else:
+            st.error(f"File non trovato: {html_file}")
 
 if "sel" not in st.session_state: st.session_state.sel=[]
 
