@@ -2189,98 +2189,121 @@ if sel:
         if {"EP_GL_NREN","CLASSE_ENERGETICA"}-d.keys():
             st.error("EP_GL_NREN and Energy class are required."); st.stop()
 
-try:
-    # 1) predizioni singole NM (regressione)
-    nm_sing = {i: pred_NM(d, i) for i in sel}
+        try:
+            # 1) predizioni singole NM (regressione)
+            nm_sing = {i: pred_NM(d, i) for i in sel}
 
-    # 2) verifica pre-EN_1…EN_6
-    for i in sel:
-        # 2a) EP_GL_NREN
-        emin, emax = feature_limits_en[i]['EP_GL_NREN']
-        ep0 = d["EP_GL_NREN"]
-        if not (emin <= ep0 <= emax):
-            st.error(
-                f"EP_GL_NREN = {ep0:.2f} fuori dal range "
-                f"[{emin:.2f}, {emax:.2f}] richiesto da EN_{i}"
+            # 2) verifica pre-EN_1…EN_6
+            for i in sel:
+                # 2a) EP_GL_NREN
+                emin, emax = feature_limits_en[i]['EP_GL_NREN']
+                ep0 = d["EP_GL_NREN"]
+                if not (emin <= ep0 <= emax):
+                    st.error(
+                        f"EP_GL_NREN = {ep0:.2f} fuori dal range "
+                        f"[{emin:.2f}, {emax:.2f}] richiesto da EN_{i}"
+                    )
+                    st.stop()
+
+            # 2b) NM_EP_GL_NREN_RAGGIUNG_{i}
+                fnm = f"NM_EP_GL_NREN_RAGGIUNG_{i}"
+                nmin, nmax = feature_limits_en[i][fnm]
+                nm_val = nm_sing[i]
+                if not (nmin <= nm_val <= nmax):
+                    st.error(
+                        f"{fnm} = {nm_val:.2f} fuori dal range "
+                        f"[{nmin:.2f}, {nmax:.2f}] richiesto da EN_{i}"
+                    )
+                    st.stop()
+
+            # 3) predizioni singole DS (classificazione EN_1…EN_6)
+            ds_sing = {
+                i: pred_DS(nm_sing[i], d["EP_GL_NREN"], d["CLASSE_ENERGETICA"], i)
+                for i in sel
+            }
+
+            # 4) predizione NM combinato (regr. XGBoost_7)
+            if len(sel) > 1:
+            # base “utente” per il modello 7
+                comb_base = {
+                    f: d.get(f, 0.0)
+                    for f in feature_sets[7]
+                    if not f.startswith(("NM_", "DS_"))
+                }
+                nm_input = {
+                    f"NM_EP_GL_NREN_RAGGIUNG_{k}": nm_sing.get(k, 0.0)
+                    for k in range(1, 7)
+                }
+                nm7 = pred_NM({**comb_base, **nm_input}, 7)
+            else:
+                nm7 = next(iter(nm_sing.values()))
+
+            # 5) predizione DS combinato (classif. XGBoost_EN_7)
+            if len(sel) > 1:
+                ds_input = {
+                    f"DS_CLASSE_RAGGIUNGIBILE_{k}": ds_sing.get(k, 0)
+                    for k in range(1, 7)
+                }
+                nm_input2 = {
+                    f"NM_EP_GL_NREN_RAGGIUNG_{k}": nm_sing.get(k, 0.0)
+                    for k in range(1, 7)
+                }
+                full = {
+                    **comb_base,
+                    **nm_input2,
+                    **ds_input,
+                    "NM_EP_GL_NREN_RAGGIUNG_7": nm7,
+                    "DS_CLASSE_RAGGIUNGIBILE_7": 0  # placeholder
+                }
+
+                # 5a) verifica tutti gli input EN_7
+                for feat, (mn, mx) in feature_limits_en[7].items():
+                    if feat not in full:
+                        continue
+                    val = full[feat]
+                    if not (mn <= val <= mx):
+                        st.error(
+                            f"Input `{feat}` per EN_7 = {val:.2f} "
+                            f"fuori dal range [{mn:.2f}, {mx:.2f}]."
+                        )
+                        st.stop()
+
+                # 5b) predict EN_7
+                f_order = models_en[7].feature_names_in_
+                df7 = pd.DataFrame([{f: full.get(f, 0.0) for f in f_order}])
+                ds7 = int(models_en[7].predict(df7)[0])
+            else:
+                ds7 = next(iter(ds_sing.values()))
+
+                # 6) Rendering dei risultati
+            tabs = st.tabs(
+                [f"Intervention {i}" for i in sel] +
+                (["Combined"] if len(sel) > 1 else [])
             )
-            st.stop()
 
-        # 2b) NM_EP_GL_NREN_RAGGIUNG_{i}
-        fnm = f"NM_EP_GL_NREN_RAGGIUNG_{i}"
-        nmin, nmax = feature_limits_en[i][fnm]
-        nm_val = nm_sing[i]
-        if not (nmin <= nm_val <= nmax):
-            st.error(
-                f"{fnm} = {nm_val:.2f} fuori dal range "
-                f"[{nmin:.2f}, {nmax:.2f}] richiesto da EN_{i}"
-            )
-            st.stop()
+                # ➊ singoli interventi
+            for idx, i in enumerate(sel):
+                with tabs[idx]:
+                    st.metric(
+                        "EP_GL_NREN achievable (kWh/m²·year)",
+                        f"{nm_sing[i]:.2f}"
+                    )
+                    st.metric(
+                        "Energy class achievable",
+                        f"{ds_sing[i] + 1}"
+                    )
 
-    # 3) predizioni singole DS (classificazione EN_1…EN_6)
-    ds_sing = {
-        i: pred_DS(nm_sing[i], d["EP_GL_NREN"], d["CLASSE_ENERGETICA"], i)
-        for i in sel
-    }
+                # ➋ risultato combinato
+            if len(sel) > 1:
+                with tabs[-1]:
+                    st.metric(
+                        "EP_GL_NREN achievable (kWh/m²·year)",
+                        f"{nm7:.2f}"
+                    )
+                    st.metric(
+                        "Energy class achievable",
+                        f"{ds7 + 1}"
+                    )
 
-    # 4) predizione NM combinato (regr. XGBoost_7)
-    if len(sel) > 1:
-        nm_input = {
-            f"NM_EP_GL_NREN_RAGGIUNG_{k}": nm_sing.get(k, 0.0)
-            for k in range(1, 7)
-        }
-        comb_base = {
-            f: d.get(f, 0.0)
-            for f in feature_sets[7]
-            if not f.startswith(("NM_", "DS_"))
-        }
-        nm7 = pred_NM({**comb_base, **nm_input}, 7)
-    else:
-        nm7 = list(nm_sing.values())[0]
-
-    # 5) predizione DS combinato (classif. XGBoost_EN_7)
-    if len(sel) > 1:
-        # costruisci il dict completo
-        ds_input = {
-            f"DS_CLASSE_RAGGIUNGIBILE_{k}": ds_sing.get(k, 0)
-            for k in range(1, 7)
-        }
-        nm_input2 = {
-            f"NM_EP_GL_NREN_RAGGIUNG_{k}": nm_sing.get(k, 0.0)
-            for k in range(1, 7)
-        }
-        full = {
-            **comb_base,
-            **nm_input2,
-            **ds_input,
-            "NM_EP_GL_NREN_RAGGIUNG_7": nm7,
-            "DS_CLASSE_RAGGIUNGIBILE_7": 0  # placeholder
-        }
-
-        # 5a) verifica tutti gli input EN_7
-        for feat, (mn, mx) in feature_limits_en[7].items():
-            if feat not in full:
-                continue
-            val = full[feat]
-            if not (mn <= val <= mx):
-                st.error(
-                    f"Input `{feat}` per EN_7 = {val:.2f} "
-                    f"fuori dal range [{mn:.2f}, {mx:.2f}]."
-                )
-                st.stop()
-
-        # 5b) predict EN_7
-        f_order = models_en[7].feature_names_in_
-        df7 = pd.DataFrame([{f: full.get(f, 0.0) for f in f_order}])
-        ds7 = int(models_en[7].predict(df7)[0])
-    else:
-        ds7 = list(ds_sing.values())[0]
-
-    # 6) Rendering dei risultati
-    tabs = st.tabs(
-        [f"Intervention {i}" for i in sel] +
-        (["Combined"] if len(sel) > 1 else [])
-    )
-    # … qui il tuo codice per st.metric() …
-
-except Exception as e:
-    st.error(f"Error: {e}")
+        except Exception as e:
+                st.error(f"Error: {e}")
