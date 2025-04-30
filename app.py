@@ -2162,7 +2162,7 @@ if sel:
             )
             return st.number_input(
                 label, min_value=vmin, max_value=vmax,
-                value=vmin, help=full_int
+                value=vmin, help=full_hint
             )
         
         # --------------------------------------------------------------------
