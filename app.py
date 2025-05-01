@@ -2131,23 +2131,28 @@ with c1:
 
     """)
 
-    with st.expander("EP_GL_NREN 1% Sample Heatmap"):
-        html_file = os.path.join(os.path.dirname(__file__), "static", "Heatmap_EP_GL_NREN.html")
-        if os.path.exists(html_file):
-            with open(html_file, "r", encoding="utf-8") as f:
+    # --- HEATMAPS: due tab affiancati ------------------------------------------
+    heat_tabs = st.tabs(["EP_GL_NREN – 1 % Sample", "Energy Class – 1 % Sample"])
+
+    # TAB 1 ──────────────────────────────────────────────────────────────────────
+    with heat_tabs[0]:
+        html_path = os.path.join(os.path.dirname(__file__),
+                                "static", "Heatmap_EP_GL_NREN.html")
+        if os.path.exists(html_path):
+            with open(html_path, "r", encoding="utf-8") as f:
                 components.html(f.read(), height=500, scrolling=True)
         else:
-            st.error(f"File non trovato: {html_file}")
+            st.error(f"File non trovato: {html_path}")
 
-    with st.expander("Energy Class 1% Sample Heatmap"):
-        html_file = os.path.join(os.path.dirname(__file__), "static", "Heatmap_CLASSE.html")
-        if os.path.exists(html_file):
-            with open(html_file, "r", encoding="utf-8") as f:
+    # TAB 2 ──────────────────────────────────────────────────────────────────────
+    with heat_tabs[1]:
+        html_path = os.path.join(os.path.dirname(__file__),
+                                "static", "Heatmap_CLASSE.html")
+        if os.path.exists(html_path):
+            with open(html_path, "r", encoding="utf-8") as f:
                 components.html(f.read(), height=500, scrolling=True)
         else:
-            st.error(f"File non trovato: {html_file}")
-
-            
+            st.error(f"File non trovato: {html_path}")
 
     st.markdown("""
     Fill in the fields below to estimate the impact of an energy-efficiency intervention on the building.
