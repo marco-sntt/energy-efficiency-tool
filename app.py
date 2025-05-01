@@ -1800,6 +1800,55 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.markdown("""
+    <style>
+    /* testo di tutti i paragrafi, titoli, label, metric in nero */
+    p, h1, h2, h3, h4, h5, h6, label, span, div[data-testid="stMetricValue"] {
+        color: #000 !important;
+    }
+
+    /* sfondo app e sidebar */
+    div[data-testid="stAppViewContainer"], 
+    div[data-testid="stSidebar"] {
+        background-color: #C4DB71 !important;
+    }
+
+    /* expander: header (intestazione cliccabile) */
+    div[data-testid="stExpander"] > div[role="button"] {
+        background-color: #A3C04D !important;
+        color: #000 !important;
+        border: none !important;
+        border-radius: 4px;
+    }
+    /* expander: body */
+    div[data-testid="stExpander"] div[data-testid="stMarkdownContainer"] {
+        background-color: #C4DB71 !important;
+        padding: 0.75rem 1rem !important;
+        border-radius: 0 0 4px 4px;
+    }
+
+    /* tabs: pulsanti */
+    button[role="tab"] {
+        background-color: #C4DB71 !important;
+        color: #000 !important;
+        border: none !important;
+        border-radius: 4px 4px 0 0 !important;
+        margin-right: 0.25rem !important;
+    }
+    /* tab selezionata */
+    button[role="tab"][aria-selected="true"] {
+        background-color: #8FAE45 !important;
+        color: #000 !important;
+    }
+    /* contenuto tab */
+    div[data-testid="stTabContent"] {
+        background-color: #C4DB71 !important;
+        padding: 1rem !important;
+        border-radius: 0 0 4px 4px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 #[3] Model Loading 
 
 MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
