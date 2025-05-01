@@ -2042,7 +2042,7 @@ IMG_PATTERN_3 = "sp_{i}.png" # <‑‑ nome file per il grafico dell’intervent
 IMG_PATTERN_4 = "cm_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
 # --------------------------------------------------------------------
 with st.sidebar:
-    with st.expander("📊 Training loss trend-EP_GL_NREN", expanded=True):
+    with st.expander("Performance of XGBoost Regressor on Post-Intervention EP_GL_NREN Prediction", expanded=True):
         # etichette tab: "1", "2", …, "7"
         tabs = st.tabs([str(i) for i in range(1, 8)])
 
@@ -2068,7 +2068,7 @@ with st.sidebar:
                 else:
                     st.info(f"Add image: {img_path}")
 
-    with st.expander("📊 training loss trend-Energy class", expanded=True):
+    with st.expander("Performance of XGBoost Classifier on Post-Intervention Energy Class Prediction", expanded=True):
         # etichette tab: "1", "2", …, "7"
         tabs = st.tabs([str(i) for i in range(1, 8)])
 
@@ -2125,8 +2125,9 @@ with c1:
     - E.1(3): Other residential buildings (e.g., student or worker residences)
 
     ⚠️ Make sure your building meets **all** of these criteria before proceeding.
+                
     
-    Visualization of the datasets used     
+    Visualization of the dataset:     
 
     """)
 
@@ -2145,6 +2146,8 @@ with c1:
                 components.html(f.read(), height=500, scrolling=True)
         else:
             st.error(f"File non trovato: {html_file}")
+
+            
 
     st.markdown("""
     Fill in the fields below to estimate the impact of an energy-efficiency intervention on the building.
