@@ -2218,7 +2218,7 @@ if sel:
             d["CLASSE_ENERGETICA"] = (
                 st.selectbox(
                     "Energy class (1=A4 … 10=G)",
-                    list(range(int(lo)+1, int(hi)+2)),
+                    list(range(1, 11)),
                     index=0,
                     help="Current energy class of the building"
                 ) - 1
