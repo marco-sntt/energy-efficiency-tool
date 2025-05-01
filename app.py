@@ -2131,32 +2131,36 @@ with c1:
 
     """)
 
-    # --- HEATMAPS: due tab affiancati ------------------------------------------
-    heat_tabs = st.tabs(["EP_GL_NREN – 1 % Sample", "Energy Class – 1 % Sample"])
+    # --- HEATMAPS con toggle dentro i tab --------------------------------------
+heat_tabs = st.tabs(["EP_GL_NREN – 1 % Sample", "Energy Class – 1 % Sample"])
 
-    # TAB 1 ──────────────────────────────────────────────────────────────────────
-    with heat_tabs[0]:
-        html_path = os.path.join(os.path.dirname(__file__),
-                                "static", "Heatmap_EP_GL_NREN.html")
+# ---------- TAB 1 ----------------------------------------------------------
+with heat_tabs[0]:
+    st.subheader("EP_GL_NREN – 1 % Sample")
+    show_map1 = st.toggle("Mostra / nascondi mappa", key="show_map_nren")
+    if show_map1:
+        html_path = os.path.join(
+            os.path.dirname(__file__), "static", "Heatmap_EP_GL_NREN.html"
+        )
         if os.path.exists(html_path):
             with open(html_path, "r", encoding="utf-8") as f:
                 components.html(f.read(), height=500, scrolling=True)
         else:
             st.error(f"File non trovato: {html_path}")
 
-    # TAB 2 ──────────────────────────────────────────────────────────────────────
-    with heat_tabs[1]:
-        html_path = os.path.join(os.path.dirname(__file__),
-                                "static", "Heatmap_CLASSE.html")
+# ---------- TAB 2 ----------------------------------------------------------
+with heat_tabs[1]:
+    st.subheader("Energy Class – 1 % Sample")
+    show_map2 = st.toggle("Mostra / nascondi mappa", key="show_map_cls")
+    if show_map2:
+        html_path = os.path.join(
+            os.path.dirname(__file__), "static", "Heatmap_CLASSE.html"
+        )
         if os.path.exists(html_path):
             with open(html_path, "r", encoding="utf-8") as f:
                 components.html(f.read(), height=500, scrolling=True)
         else:
             st.error(f"File non trovato: {html_path}")
-
-    st.markdown("""
-    Fill in the fields below to estimate the impact of an energy-efficiency intervention on the building.
-    """)
                 
 with c2:
     with st.expander("🔳 QR Code"):
