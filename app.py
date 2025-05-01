@@ -1802,52 +1802,97 @@ st.markdown(
 
 st.markdown("""
     <style>
-    /* testo di tutti i paragrafi, titoli, label, metric in nero */
-    p, h1, h2, h3, h4, h5, h6, label, span, div[data-testid="stMetricValue"] {
-        color: #000 !important;
+    /* Palette tone-on-tone su verdi sostenibili */
+    :root {
+        --bg-main: #E6F3CF;        /* sfondo generale */
+        --bg-sidebar: #D2E8A8;     /* sidebar */
+        --bg-drawer: #C0DC84;      /* tenda destra */
+        --bg-exp-header: #AED066;  /* expander header */
+        --bg-tab: #94B34C;         /* tabs */
+        --bg-tab-active: #84A441;  /* tab attiva */
+        --bg-card: #B8D991;        /* metriche, controlli */
+        --text: #0A0A0A;           /* testo */
     }
 
-    /* sfondo app e sidebar */
-    div[data-testid="stAppViewContainer"], 
+    /* corpo e sidebar */
+    div[data-testid="stAppViewContainer"],
     div[data-testid="stSidebar"] {
-        background-color: #C4DB71 !important;
+        background-color: var(--bg-main) !important;
+        color: var(--text) !important;
+    }
+    div[data-testid="stSidebar"] > div {
+        background-color: var(--bg-sidebar) !important;
     }
 
-    /* expander: header (intestazione cliccabile) */
-    div[data-testid="stExpander"] > div[role="button"] {
-        background-color: #A3C04D !important;
-        color: #000 !important;
-        border: none !important;
-        border-radius: 4px;
+    /* drawer (tenda destra) */
+    div[data-testid="stDrawer"] {
+        background-color: var(--bg-drawer) !important;
+        color: var(--text) !important;
     }
-    /* expander: body */
+
+    /* expander */
+    div[data-testid="stExpander"] > div[role="button"] {
+        background-color: var(--bg-exp-header) !important;
+        color: var(--text) !important;
+        border-radius: 4px;
+        margin-bottom: 0.25rem;
+    }
     div[data-testid="stExpander"] div[data-testid="stMarkdownContainer"] {
-        background-color: #C4DB71 !important;
-        padding: 0.75rem 1rem !important;
+        background-color: var(--bg-main) !important;
+        padding: 1rem !important;
         border-radius: 0 0 4px 4px;
     }
 
-    /* tabs: pulsanti */
+    /* tabs */
     button[role="tab"] {
-        background-color: #C4DB71 !important;
-        color: #000 !important;
+        background-color: var(--bg-tab) !important;
+        color: var(--text) !important;
         border: none !important;
         border-radius: 4px 4px 0 0 !important;
         margin-right: 0.25rem !important;
     }
-    /* tab selezionata */
     button[role="tab"][aria-selected="true"] {
-        background-color: #8FAE45 !important;
-        color: #000 !important;
+        background-color: var(--bg-tab-active) !important;
     }
-    /* contenuto tab */
     div[data-testid="stTabContent"] {
-        background-color: #C4DB71 !important;
+        background-color: var(--bg-main) !important;
         padding: 1rem !important;
         border-radius: 0 0 4px 4px;
     }
+
+    /* metriche e card */
+    div[data-testid="stMetric"],
+    .stMetric {
+        background-color: var(--bg-card) !important;
+        padding: 0.5rem !important;
+        border-radius: 4px;
+    }
+    div[data-testid="stMetricValue"],
+    div[data-testid="stMetricLabel"] {
+        color: var(--text) !important;
+    }
+
+    /* form controls e bottoni */
+    input, select, textarea, .stNumberInput>div>div>input {
+        background-color: var(--bg-card) !important;
+        color: var(--text) !important;
+        border: none !important;
+        border-radius: 4px !important;
+    }
+    button[kind="primary"], button[kind="secondary"] {
+        background-color: var(--bg-tab) !important;
+        color: var(--text) !important;
+        border: none !important;
+        border-radius: 4px !important;
+    }
+
+    /* testo generale */
+    h1, h2, h3, h4, h5, h6, p, label, span {
+        color: var(--text) !important;
+    }
     </style>
 """, unsafe_allow_html=True)
+
 
 #[3] Model Loading 
 
