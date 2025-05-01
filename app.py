@@ -1781,7 +1781,7 @@ import pandas as pd
 import streamlit.components.v1 as components
 
 st.set_page_config(
-     page_title="ENERGY EFFICIENCY TOOL", 
+     page_title="XGreen – Building Retrofit Impact AI-Based Predictor", 
      layout="wide",
      initial_sidebar_state="collapsed"
 )
