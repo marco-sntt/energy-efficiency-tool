@@ -2135,7 +2135,7 @@ with c1:
     col_map1, col_map2 = st.columns(2)
 
     # Expander 1: EP_GL_NREN – 1 % Sample
-    with col_map1.expander("EP_GL_NREN – 1 % Sample", expanded=True):
+    with col_map1.expander("EP_GL_NREN – 1 % Sample", expanded=False):
         html_path = os.path.join(
             os.path.dirname(__file__),
             "static",
@@ -2148,7 +2148,7 @@ with c1:
             st.error(f"File non trovato: {html_path}")
 
     # Expander 2: Energy Class – 1 % Sample
-    with col_map2.expander("Energy Class – 1 % Sample", expanded=True):
+    with col_map2.expander("Energy Class – 1 % Sample", expanded=False):
         html_path = os.path.join(
             os.path.dirname(__file__),
             "static",
