@@ -2296,14 +2296,15 @@ if sel:
         # pulsante di sottomissione ------------------------------------------
         go = st.form_submit_button("Run calculation")
 
-    if go:
         # VALIDAZIONE GENERICA: blocca tutto se un input è fuori dai limiti
         for feat, val in d.items():
             if feat in agg_limits:
                 vmin, vmax = agg_limits[feat]
-                if not (vmin <= val <= vmax):
+                # per CLASSE_ENERGETICA controllo sul valore +1
+                check_val = val + 1 if feat == "CLASSE_ENERGETICA" else val
+                if not (vmin <= check_val <= vmax):
                     st.error(
-                        f"Valore `{feat}` = {val:.2f} fuori range "
+                        f"Valore `{feat}` = {check_val:.2f} fuori range "
                         f"[{vmin:.2f}, {vmax:.2f}]. Impossibile calcolare."
                     )
                     st.stop()
