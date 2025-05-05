@@ -2429,14 +2429,15 @@ if sel:
                 )
                 st.stop()
 
+            # 6) Rendering dei risultati
+            energy_labels = ["A4", "A3", "A2", "A1", "B", "C", "D", "E", "F", "G"]
 
-                # 6) Rendering dei risultati
             tabs = st.tabs(
                 [f"Intervention {i}" for i in sel] +
                 (["Combined"] if len(sel) > 1 else [])
             )
 
-                # ➊ singoli interventi
+            # ➊ singoli interventi
             for idx, i in enumerate(sel):
                 with tabs[idx]:
                     st.metric(
@@ -2445,10 +2446,10 @@ if sel:
                     )
                     st.metric(
                         "Energy class achievable",
-                        f"{ds_sing[i] + 1}"
+                        energy_labels[ds_sing[i]]   # <— qui mostri l’etichetta
                     )
 
-                # ➋ risultato combinato
+            # ➋ risultato combinato
             if len(sel) > 1:
                 with tabs[-1]:
                     st.metric(
@@ -2457,7 +2458,7 @@ if sel:
                     )
                     st.metric(
                         "Energy class achievable",
-                        f"{ds7 + 1}"
+                        energy_labels[ds7]          # <— e qui
                     )
 
         except Exception as e:
