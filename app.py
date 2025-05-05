@@ -2117,7 +2117,7 @@ def union_features(selected):
 
 c1,c2=st.columns([4,1])
 with c1: 
-    st.title("ENERGY EFFICIENCY TOOL")
+    st.title("XGreen - Building Retrofit Impact AI-Based Predictor")
     st.markdown("""
     **⚠️ This tool is valid only for buildings located in the Lombardy region, within climate zone E, belonging to category E.1, with a gross floor area below 700 m² and with a gross volume below 2450 m³ :**
     - E.1(1): Buildings used as permanent residences (e.g., apartment buildings)
@@ -2225,15 +2225,18 @@ if sel:
             )
 
         if "CLASSE_ENERGETICA" in agg_limits:
-            lo, hi = agg_limits["CLASSE_ENERGETICA"]
-            d["CLASSE_ENERGETICA"] = (
-                st.selectbox(
-                    "Energy class (1=A4 … 10=G)",
-                    list(range(1, 11)),
-                    index=0,
-                    help="Current energy class of the building"
-                ) - 1
+            # Lista delle etichette da mostrare all'utente
+            energy_labels = ["A4", "A3", "A2", "A1", "B", "C", "D", "E", "F", "G"]
+            # il selectbox mostrerà solo le stringhe
+            choice = st.selectbox(
+                "Energy class",
+                energy_labels,
+                index=0,  # A4 di default
+                help="Current energy class of the building"
             )
+            # in background converto la scelta in un intero 0–9
+            d["CLASSE_ENERGETICA"] = energy_labels.index(choice)
+
         if "RAPPORTO_SV" in agg_limits:
             d["RAPPORTO_SV"] = num(
                 "S/V ratio (1/m)",
