@@ -2270,8 +2270,8 @@ if sel:
                 check_val = val + 1 if feat == "CLASSE_ENERGETICA" else val
                 if not (vmin <= check_val <= vmax):
                     st.error(
-                        f"Valore `{feat}` = {check_val:.2f} fuori range "
-                        f"[{vmin:.2f}, {vmax:.2f}]. Impossibile calcolare."
+                        f"Value `{feat}` = {check_val:.2f} out of range "
+                        f"[{vmin:.2f}, {vmax:.2f}]. Unable to calculate."
                     )
                     st.stop()
 
@@ -2290,7 +2290,7 @@ if sel:
                 if not (emin <= ep0 <= emax):
                     st.error(
                         f"EP_GL_NREN = {ep0:.2f} out of range "
-                        f"[{emin:.2f}, {emax:.2f}] richiesto da EN_{i}"
+                        f"[{emin:.2f}, {emax:.2f}] required by EN_{i}"
                     )
                     st.stop()
 
@@ -2300,7 +2300,7 @@ if sel:
                 if not (nmin <= nm_val <= nmax):
                     st.error(
                         f"{fnm} = {nm_val:.2f} out of range "
-                        f"[{nmin:.2f}, {nmax:.2f}] richiesto da EN_{i}"
+                        f"[{nmin:.2f}, {nmax:.2f}] required by EN_{i}"
                     )
                     st.stop()
 
