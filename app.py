@@ -1774,7 +1774,7 @@
 
 ###UNDICESIMA VERSIONE: con classe 7 e classe raggiungibile
 
-#[1] Imports and Page Configuration
+#[1] Import libraries and configure Streamlit page
 
 import streamlit as st, qrcode, io, os, pickle
 import pandas as pd
@@ -1786,7 +1786,7 @@ st.set_page_config(
      initial_sidebar_state="collapsed"
 )
 
-#[2] Custom CSS Styling
+#[2] Custom CSS to adjust metric font-size in sidebar
 
 st.markdown(
     """
@@ -1800,13 +1800,13 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-#[3] Model Loading 
+#[3] Load pre-trained models from disk 
 
 MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
 models     = {i: pickle.load(open(os.path.join(MODELS_DIR,f"XGBoost_{i}.pkl"),"rb"))  for i in range(1,8)}
 models_en  = {i: pickle.load(open(os.path.join(MODELS_DIR,f"XGBoost_EN_{i}.pkl"),"rb"))for i in range(1,8)}
 
-#[4] Feature and Metrics Definitions
+#[4] Define feature sets and performance metrics
 
 feature_sets = {
     1:['EP_GL_NREN','EP_H_ND','CLASSE_ENERGETICA','RAPPORTO_SV',
@@ -1853,7 +1853,7 @@ accuracy_en={1:69.04,
              7:88.30
 }
 
-#FEATURES LIMITS
+# [5] Define numeric limits for each feature in each model
 
 feature_limits = {
     1: {'EP_GL_NREN': (0.66, 579.51), 
@@ -1959,7 +1959,7 @@ def compute_agg_limits(sel):
     di tutti i modelli in sel, e – se >1 intervento – include anche 
     i vincoli di feature_limits[7] e feature_limits_en[7]."""
     agg = {}
-    # 1) Intersezione base su feature_limits[1..6]
+
     feats = union_features(sel)
     for f in feats:
         mins = [feature_limits[i][f][0] for i in sel if f in feature_limits[i]]
@@ -1976,7 +1976,6 @@ def compute_agg_limits(sel):
             st.stop()
         agg[f] = (vmin, vmax)
 
-    # 2) Se combinato (>1 intervento), rafforza con feature_limits[7]
     if len(sel) > 1:
         for f, (mn7, mx7) in feature_limits[7].items():
             if f in agg:
@@ -1993,7 +1992,6 @@ def compute_agg_limits(sel):
                 )
                 st.stop()
 
-        # 3) Poi rafforza ancora con feature_limits_en[7]
         for f, (mn7e, mx7e) in feature_limits_en[7].items():
             if f in agg:
                 vmin, vmax = agg[f]
@@ -2011,51 +2009,25 @@ def compute_agg_limits(sel):
 
     return agg
 
+IMG_DIR = "static"
+IMG_PATTERN_1 = "mae_{i}.png"
+IMG_PATTERN_2 = "acc_{i}.png"
+IMG_PATTERN_3 = "sp_{i}.png"
+IMG_PATTERN_4 = "cm_{i}.png"
 
+# [6] Sidebar: Show model performance metrics in expanders
 
-# def compute_agg_limits(sel):
-#     """Restituisce {feature: (min_agg, max_agg)} per l’intersezione di tutti i modelli in sel."""
-#     agg = {}
-#     feats = union_features(sel)
-#     for f in feats:
-#         mins = [feature_limits[i][f][0] for i in sel if f in feature_limits[i]]
-#         maxs = [feature_limits[i][f][1] for i in sel if f in feature_limits[i]]
-#         if not mins or not maxs:
-#             continue
-#         vmin, vmax = max(mins), min(maxs)
-#         if vmin > vmax:
-#             st.error(f"Nessun valore possibile per {f}: intervalli incompatibili {[(i,feature_limits[i][f]) for i in sel if f in feature_limits[i]]}")
-#             st.stop()
-#         agg[f] = (vmin, vmax)
-#     return agg
-
-#SIDEBAR
-
-# —–—  dizionario MAE già definito altrove  —–—
-# mae_dict = {1: 28.25, 2: 10.03, ... , 7: 5.55}
-
-# percorso dove tieni le immagini (mae_1.png, mae_2.png, …)
-IMG_DIR = "static"          # cambialo se necessario
-IMG_PATTERN_1 = "mae_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
-IMG_PATTERN_2 = "acc_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
-IMG_PATTERN_3 = "sp_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
-IMG_PATTERN_4 = "cm_{i}.png" # <‑‑ nome file per il grafico dell’intervento i
-# --------------------------------------------------------------------
 with st.sidebar:
     with st.expander("Performance of XGBoost Regressor on Post-Intervention EP_GL_NREN Prediction", expanded=True):
-        # etichette tab: "1", "2", …, "7"
         tabs = st.tabs([str(i) for i in range(1, 8)])
 
-        # ciclo sincrono tab ↔ intervento
         for i, tab in enumerate(tabs, start=1):
             with tab:
-                # ➊  metrica numerica
                 st.metric(
                     label=f"MAE Intervention {i}",
                     value=f"± {mae_dict[i]:.2f} kWh/m²·year",
                 )
 
-                # ➋  immagine relativa
                 img_path = os.path.join(IMG_DIR, IMG_PATTERN_1.format(i=i))
                 if os.path.exists(img_path):
                     st.image(img_path, use_container_width=True)
@@ -2069,19 +2041,15 @@ with st.sidebar:
                     st.info(f"Add image: {img_path}")
 
     with st.expander("Performance of XGBoost Classifier on Post-Intervention Energy Class Prediction", expanded=True):
-        # etichette tab: "1", "2", …, "7"
         tabs = st.tabs([str(i) for i in range(1, 8)])
 
-        # ciclo sincrono tab ↔ intervento
         for i, tab in enumerate(tabs, start=1):
             with tab:
-                # ➊  metrica numerica
                 st.metric(
                     label=f"Accuracy Intervention {i}",
                     value=f"{accuracy_en[i]:.2f} %",
                 )
 
-                # ➋  immagine relativa
                 img_path = os.path.join(IMG_DIR, IMG_PATTERN_2.format(i=i))
                 if os.path.exists(img_path):
                     st.image(img_path, use_container_width=True)
@@ -2094,13 +2062,13 @@ with st.sidebar:
                 else:
                     st.info(f"Add image: {img_path}")
 
-#DEF FUNCTIONS
+# [7] Define prediction helper functions
 
-def pred_NM(data,cat):          # NM_EP_GL_NREN_RAGGIUNG_{cat}
+def pred_NM(data,cat):
     df=pd.DataFrame([{k:data[k] for k in feature_sets[cat] if k in data}])
     return float(models[cat].predict(df)[0])
 
-def pred_DS(nm,ep0,cls0,cat):   # DS_CLASSE_RAGGIUNGIBILE_{cat}
+def pred_DS(nm,ep0,cls0,cat):
     col=f"NM_EP_GL_NREN_RAGGIUNG_{cat}"
     df=pd.DataFrame([{col:nm,"CLASSE_ENERGETICA":cls0,"EP_GL_NREN":ep0}])
     df=df[models_en[cat].feature_names_in_]
@@ -2109,11 +2077,10 @@ def pred_DS(nm,ep0,cls0,cat):   # DS_CLASSE_RAGGIUNGIBILE_{cat}
 def union_features(selected):
     base=set()
     for i in selected: base|=set(feature_sets[i])
-    # feature "utente" del 7 (senza colonne NM/DS)
     base|={f for f in feature_sets[7] if not f.startswith(("NM_","DS_"))}
     return sorted(base)
 
-#UI
+# [8] Main UI layout: Title and description
 
 c1,c2=st.columns([4,1])
 with c1: 
@@ -2131,10 +2098,10 @@ with c1:
 
     """)
 
-    # --- HEATMAPS: due expander affiancati -------------------------------------
+    # [9] Display two heatmap expanders side by side
+
     col_map1, col_map2 = st.columns(2)
 
-    # Expander 1: EP_GL_NREN – 1 % Sample
     with col_map1.expander("EP_GL_NREN – 1 % Sample", expanded=False):
         html_path = os.path.join(
             os.path.dirname(__file__),
@@ -2147,7 +2114,6 @@ with c1:
         else:
             st.error(f"File non trovato: {html_path}")
 
-    # Expander 2: Energy Class – 1 % Sample
     with col_map2.expander("Energy Class – 1 % Sample", expanded=False):
         html_path = os.path.join(
             os.path.dirname(__file__),
@@ -2165,10 +2131,13 @@ with c1:
     """)
                 
 with c2:
+    # [10] Display QR code expander
     with st.expander("🔳 QR Code"):
         buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-project-management.streamlit.app/").save(buf)
         st.image(buf.getvalue(), use_container_width=True
         )
+
+# [11] Intervention selection form
 
 if "sel" not in st.session_state: st.session_state.sel=[]
 
@@ -2183,7 +2152,7 @@ with st.form("pick"):
 
 sel = st.session_state.sel
 if sel:
-    # 2) Calcolo dei limiti aggregati
+     # [12] Compute aggregated feature limits based on selection
     agg_limits = compute_agg_limits(sel)
 
     with st.form("bld"):
@@ -2202,7 +2171,8 @@ if sel:
                 value=vmin, help=full_hint
             )
         
-        # --------------------------------------------------------------------
+        # [13] Input fields for building features
+
         if "EP_GL_NREN" in agg_limits:
             d["EP_GL_NREN"] = num(
                 "EP_GL_NREN (kWh/m²·year)",
@@ -2225,16 +2195,13 @@ if sel:
             )
 
         if "CLASSE_ENERGETICA" in agg_limits:
-            # Lista delle etichette da mostrare all'utente
             energy_labels = ["A4", "A3", "A2", "A1", "B", "C", "D", "E", "F", "G"]
-            # il selectbox mostrerà solo le stringhe
             choice = st.selectbox(
                 "Energy class",
                 energy_labels,
-                index=0,  # A4 di default
+                index=0,
                 help="Current energy class of the building"
             )
-            # in background converto la scelta in un intero 0–9
             d["CLASSE_ENERGETICA"] = energy_labels.index(choice)
 
         if "RAPPORTO_SV" in agg_limits:
@@ -2293,14 +2260,13 @@ if sel:
                 feat="SUPERF_UTILE_RAFFRESCATA"
             )
 
-        # pulsante di sottomissione ------------------------------------------
         go = st.form_submit_button("Run calculation")
 
-        # VALIDAZIONE GENERICA: blocca tutto se un input è fuori dai limiti
+        # [14] Validate inputs against limits
+
         for feat, val in d.items():
             if feat in agg_limits:
                 vmin, vmax = agg_limits[feat]
-                # per CLASSE_ENERGETICA controllo sul valore +1
                 check_val = val + 1 if feat == "CLASSE_ENERGETICA" else val
                 if not (vmin <= check_val <= vmax):
                     st.error(
@@ -2309,16 +2275,16 @@ if sel:
                     )
                     st.stop()
 
+        # [15] Ensure required fields are present
+
         if {"EP_GL_NREN","CLASSE_ENERGETICA"}-d.keys():
             st.error("EP_GL_NREN and Energy class are required."); st.stop()
 
         try:
-            # 1) predizioni singole NM (regressione)
+            # [16] Run individual and combined predictions
             nm_sing = {i: pred_NM(d, i) for i in sel}
 
-            # 2) verifica pre-EN_1…EN_6
             for i in sel:
-                # 2a) EP_GL_NREN
                 emin, emax = feature_limits_en[i]['EP_GL_NREN']
                 ep0 = d["EP_GL_NREN"]
                 if not (emin <= ep0 <= emax):
@@ -2328,7 +2294,6 @@ if sel:
                     )
                     st.stop()
 
-            # 2b) NM_EP_GL_NREN_RAGGIUNG_{i}
                 fnm = f"NM_EP_GL_NREN_RAGGIUNG_{i}"
                 nmin, nmax = feature_limits_en[i][fnm]
                 nm_val = nm_sing[i]
@@ -2339,15 +2304,13 @@ if sel:
                     )
                     st.stop()
 
-            # 3) predizioni singole DS (classificazione EN_1…EN_6)
             ds_sing = {
                 i: pred_DS(nm_sing[i], d["EP_GL_NREN"], d["CLASSE_ENERGETICA"], i)
                 for i in sel
             }
 
-            # ── 4) Controllo finale sui singoli interventi ────────────
             for i in sel:
-                # EP_GL_NREN predicted non deve eccedere quello iniziale
+
                 if nm_sing[i] > d["EP_GL_NREN"]:
                     st.error(
                         f"Predicted EP_GL_NREN for intervention {i} "
@@ -2355,7 +2318,7 @@ if sel:
                         f"({d['EP_GL_NREN']:.2f})."
                     )
                     st.stop()
-                # classe energetica predicted non deve essere peggiore
+
                 if ds_sing[i] > d["CLASSE_ENERGETICA"]:
                     st.error(
                         f"Predicted energy class for intervention {i} "
@@ -2364,9 +2327,8 @@ if sel:
                     )
                     st.stop()
 
-            # 4) predizione NM combinato (regr. XGBoost_7)
             if len(sel) > 1:
-            # base “utente” per il modello 7
+
                 comb_base = {
                     f: d.get(f, 0.0)
                     for f in feature_sets[7]
@@ -2380,7 +2342,6 @@ if sel:
             else:
                 nm7 = next(iter(nm_sing.values()))
 
-            # 5) predizione DS combinato (classif. XGBoost_EN_7)
             if len(sel) > 1:
                 ds_input = {
                     f"DS_CLASSE_RAGGIUNGIBILE_{k}": ds_sing.get(k, 0)
@@ -2397,7 +2358,6 @@ if sel:
                     "NM_EP_GL_NREN_RAGGIUNG_7": nm7
                 }
 
-                # 5a) verifica tutti gli input EN_7
                 for feat, (mn, mx) in feature_limits_en[7].items():
                     if feat not in full:
                         continue
@@ -2409,7 +2369,6 @@ if sel:
                         )
                         st.stop()
 
-                # 5b) predict EN_7
                 f_order = models_en[7].feature_names_in_
                 df7 = pd.DataFrame([{f: full.get(f, 0.0) for f in f_order}])
                 ds7 = int(models_en[7].predict(df7)[0])
@@ -2429,7 +2388,7 @@ if sel:
                 )
                 st.stop()
 
-            # 6) Rendering dei risultati
+            # [17] Render results in tabs
             energy_labels = ["A4", "A3", "A2", "A1", "B", "C", "D", "E", "F", "G"]
 
             tabs = st.tabs(
@@ -2437,7 +2396,6 @@ if sel:
                 (["Combined"] if len(sel) > 1 else [])
             )
 
-            # ➊ singoli interventi
             for idx, i in enumerate(sel):
                 with tabs[idx]:
                     st.metric(
@@ -2446,10 +2404,9 @@ if sel:
                     )
                     st.metric(
                         "Energy class achievable",
-                        energy_labels[ds_sing[i]]   # <— qui mostri l’etichetta
+                        energy_labels[ds_sing[i]]
                     )
 
-            # ➋ risultato combinato
             if len(sel) > 1:
                 with tabs[-1]:
                     st.metric(
@@ -2458,7 +2415,7 @@ if sel:
                     )
                     st.metric(
                         "Energy class achievable",
-                        energy_labels[ds7]          # <— e qui
+                        energy_labels[ds7]   
                     )
 
         except Exception as e:
