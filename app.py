@@ -2160,7 +2160,7 @@ with c1:
                 
 with c2:
     with st.expander("🔳 QR Code"):
-        buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-uhca9wtuujygnendua7ljl.streamlit.app/").save(buf)
+        buf=io.BytesIO(); qrcode.make("https://energy-efficiency-tool-project-management.streamlit.app/").save(buf)
         st.image(buf.getvalue(), use_container_width=True
         )
 
