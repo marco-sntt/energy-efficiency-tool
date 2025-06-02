@@ -318,6 +318,7 @@ with c1:
     - E.1(3): Other residential buildings (e.g., student or worker residences)
 
     ⚠️ Make sure your building meets **all** of these criteria before proceeding.
+                
     ⚠️ To view the source code, please visit our GitHub repository at https://github.com/riccibrd/Project-and-Construction-Management-Group-19.
                 
     
